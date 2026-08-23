@@ -1,0 +1,3341 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="default"/>
+<meta name="apple-mobile-web-app-title" content="Mi Negocio"/>
+<meta name="theme-color" content="#0E9E74"/>
+<meta name="format-detection" content="telephone=no"/>
+<title>Mi Negocio - ERP</title>
+<style>html{-webkit-text-size-adjust:100%}html,body{margin:0;height:100%;background:#F4F8F5}#root{min-height:100%}#boot{font-family:system-ui,-apple-system,sans-serif;color:#67796F;text-align:center;padding:90px 22px;font-size:15px;line-height:1.5}</style>
+</head>
+<body>
+<div id="root"><div id="boot">Cargando Mi Negocio...</div></div>
+<noscript>Activa JavaScript para usar la aplicación.</noscript>
+<script>
+if(!window.storage){window.storage={get:async function(k){try{var v=localStorage.getItem(k);return v!=null?{key:k,value:v}:null;}catch(e){return null;}},set:async function(k,v){try{localStorage.setItem(k,v);}catch(e){}return {key:k,value:v};},delete:async function(k){try{localStorage.removeItem(k);}catch(e){}return {key:k,deleted:true};},list:async function(){try{return {keys:Object.keys(localStorage)};}catch(e){return {keys:[]};}}};}
+setTimeout(function(){var r=document.getElementById("root");if(r&&r.querySelector("#boot")){r.innerHTML="<div id=boot>No se pudo cargar la app.<br><br>Revisa tu conexion a internet y vuelve a abrir. En iPhone, actualiza iOS y usa Safari o Chrome recientes.</div>";}},12000);
+</script>
+<script type="module">
+import React from "https://esm.sh/react@18.3.1";
+import { useState, useEffect } from "https://esm.sh/react@18.3.1";
+import { Home, Package, ArrowLeftRight, ShoppingCart, MoreHorizontal, AlertTriangle, Plus, Check, ArrowLeft, Trash2, TrendingUp, Store, Boxes, Wallet, BarChart3, Settings, Users, Pencil, Copy, Power, Truck, Tag, ClipboardList, Coins, FileText, HandCoins, Download, Undo2, ShoppingBag } from "https://esm.sh/lucide-react@0.383.0";
+const POINTS0 = ["ANDREA", "AMAGA", "RETIRO", "PUEBLO RICO", "VENECIA"];
+const CATS0 = ["SHAMPO", "TRATAMIENTO", "CHOCOLATE", "COLAGENO", "GOTAS", "ACEITE", "ACLARANTE", "JABON"];
+const UNIDADES = ["Und", "ml", "g", "Lt", "Kg", "Sobre", "Frasco", "Caja"];
+const CONC_ENT0 = ["Compra", "Devolución de cliente", "Inventario inicial", "Ajuste positivo", "Traslado entrada"];
+const CONC_SAL0 = ["Devolución a proveedor", "Nota crédito", "Ajuste negativo", "Merma o daño", "Traslado salida"];
+const EXP_CONCEPTS = ["Gastos del punto", "Papelería", "Publicidad", "Seguridad social", "Servicios", "Mantenimiento local", "Insumos de limpieza", "Viáticos", "Compras", "Arriendo", "Transporte", "Otros"];
+const LOW = 3;
+const BASE = [["S001", "SHAMPO", "Shampoo Ultranutritivo"], ["S002", "SHAMPO", "Shampoo Emergencia Capilar"], ["S003", "SHAMPO", "Shampoo Magia Capilar"], ["S004", "SHAMPO", "Shampoo Anticaspa"], ["S005", "SHAMPO", "Shampoo Kids"], ["S006", "SHAMPO", "Suero Facial"], ["T001", "TRATAMIENTO", "Tratamiento Emergencia Capilar"], ["T002", "TRATAMIENTO", "Tratamiento Frutas"], ["T003", "TRATAMIENTO", "Tratamiento Carbón"], ["T004", "TRATAMIENTO", "Tratamiento Magia Capilar"], ["T005", "CHOCOLATE", "Chocolate Negro"], ["T006", "CHOCOLATE", "Chocolate Blanco"], ["C001", "COLAGENO", "Colágeno Hidrolizado"], ["G001", "GOTAS", "Gotas Mágicas"], ["A001", "ACEITE", "Aceite 2 en 1"], ["A002", "ACLARANTE", "Aclarante"], ["J001", "JABON", "Jabón"]];
+const EJ = {
+  S001: [25000, 15000, 8],
+  S002: [26000, 16000, 3],
+  S003: [25000, 15000, 12],
+  S004: [24000, 14000, 2],
+  S005: [22000, 13000, 6],
+  S006: [28000, 17000, 5],
+  T001: [30000, 18000, 4],
+  T002: [30000, 18000, 0],
+  T003: [32000, 19000, 7],
+  T004: [30000, 18000, 9],
+  T005: [26000, 16000, 1],
+  T006: [26000, 16000, 5],
+  C001: [45000, 28000, 6],
+  G001: [35000, 20000, 3],
+  A001: [20000, 12000, 10],
+  A002: [18000, 10000, 4],
+  J001: [12000, 7000, 15]
+};
+const seedProducts = ej => BASE.map(([cod, cat, nom]) => {
+  const e = ej ? EJ[cod] : [0, 0, 0];
+  return {
+    cod,
+    cat,
+    nom,
+    unidad: "Und",
+    presentacion: "",
+    proveedor: "",
+    precio: e[0],
+    costo: e[1],
+    stock: e[2],
+    activo: true
+  };
+});
+const d = n => {
+  const x = new Date();
+  x.setDate(x.getDate() - n);
+  return x.toISOString().slice(0, 10);
+};
+const cli = (nombre, ident, dir, tel) => ({
+  id: nombre,
+  nombre,
+  ident: ident || "",
+  dir: dir || "",
+  tel: tel || ""
+});
+const seedClients = () => [cli("María López", "43.111.222", "Cra 50 #20-15, Amagá", "300 111 2233"), cli("Tienda La Esquina", "900.123.456-1", "Calle 10 #5-40, El Retiro", "310 555 6677")];
+const seedSuppliers = () => [cli("Distribuidora Bella", "800.222.333-4", "Av. Industrial 45, Medellín", "604 222 3344")];
+const seedFacturas = () => [{
+  id: 1,
+  n: 1,
+  fecha: d(1),
+  punto: "ANDREA",
+  tipo: "Menudeo",
+  cliente: "Mostrador",
+  clienteData: null,
+  items: [{
+    cod: "S001",
+    nom: "Shampoo Ultranutritivo",
+    cant: 2,
+    precio: 25000
+  }],
+  bruto: 50000,
+  descuento: 0,
+  total: 50000,
+  pagado: 50000,
+  saldo: 0
+}, {
+  id: 2,
+  n: 2,
+  fecha: d(1),
+  punto: "AMAGA",
+  tipo: "Minorista",
+  cliente: "María López",
+  clienteData: seedClients()[0],
+  items: [{
+    cod: "C001",
+    nom: "Colágeno Hidrolizado",
+    cant: 3,
+    precio: 40000
+  }],
+  bruto: 120000,
+  descuento: 0,
+  total: 120000,
+  pagado: 60000,
+  saldo: 60000
+}, {
+  id: 3,
+  n: 3,
+  fecha: d(2),
+  punto: "RETIRO",
+  tipo: "Menudeo",
+  cliente: "Mostrador",
+  clienteData: null,
+  items: [{
+    cod: "T003",
+    nom: "Tratamiento Carbón",
+    cant: 3,
+    precio: 32000
+  }],
+  bruto: 96000,
+  descuento: 6000,
+  total: 90000,
+  pagado: 90000,
+  saldo: 0
+}];
+const seedAbonos = () => [{
+  id: 1,
+  fecha: d(1),
+  facturaId: 1,
+  cliente: "Mostrador",
+  monto: 50000
+}, {
+  id: 2,
+  fecha: d(1),
+  facturaId: 2,
+  cliente: "María López",
+  monto: 60000
+}, {
+  id: 3,
+  fecha: d(2),
+  facturaId: 3,
+  cliente: "Mostrador",
+  monto: 90000
+}];
+const seedMovs = () => [{
+  id: 1,
+  fecha: d(6),
+  tipo: "entrada",
+  concepto: "Inventario inicial",
+  cod: "S001",
+  nom: "Shampoo Ultranutritivo",
+  cant: 10,
+  punto: "ANDREA",
+  nota: ""
+}, {
+  id: 2,
+  fecha: d(5),
+  tipo: "entrada",
+  concepto: "Compra",
+  cod: "C001",
+  nom: "Colágeno Hidrolizado",
+  cant: 6,
+  punto: "AMAGA",
+  nota: "Distribuidora Bella"
+}];
+const seedExpenses = () => [{
+  id: 1,
+  fecha: d(2),
+  punto: "ANDREA",
+  concepto: "Arriendo",
+  monto: 60000
+}, {
+  id: 2,
+  fecha: d(3),
+  punto: "AMAGA",
+  concepto: "Publicidad",
+  monto: 25000
+}];
+const seedDeudas = () => [{
+  id: 1,
+  fecha: d(4),
+  acreedor: "Distribuidora Bella",
+  concepto: "Compra de mercancía",
+  monto: 200000,
+  pagado: 100000,
+  saldo: 100000
+}];
+const seedCompras = () => [{
+  id: 1,
+  n: 1,
+  fecha: d(5),
+  punto: "AMAGA",
+  proveedor: "Distribuidora Bella",
+  proveedorData: seedSuppliers()[0],
+  items: [{
+    cod: "C001",
+    nom: "Colágeno Hidrolizado",
+    cant: 6,
+    costo: 28000
+  }],
+  total: 168000,
+  pago: "Crédito"
+}];
+const money = n => "$" + Math.round(n || 0).toLocaleString("es-CO");
+const mesAct = () => {
+  const x = new Date();
+  return [x.getMonth(), x.getFullYear()];
+};
+const enMes = f => {
+  const x = new Date(f + "T00:00:00");
+  const [m, y] = mesAct();
+  return x.getMonth() === m && x.getFullYear() === y;
+};
+const uid = () => Date.now() + Math.floor(Math.random() * 1000);
+const hoy = () => new Date().toISOString().slice(0, 10);
+const pad = (p, n) => p + "-" + String(n).padStart(4, "0");
+const primerDiaMes = () => {
+  const x = new Date();
+  return new Date(x.getFullYear(), x.getMonth(), 1).toISOString().slice(0, 10);
+};
+const fToDoc = f => ({
+  tipo: "Factura de venta",
+  num: pad("F", f.n),
+  fecha: f.fecha,
+  punto: f.punto,
+  subtipo: f.tipo,
+  party: {
+    rol: "Cliente",
+    ...(f.clienteData || {
+      nombre: f.cliente
+    })
+  },
+  items: f.items.map(i => ({
+    nom: i.nom,
+    cant: i.cant,
+    precio: i.precio
+  })),
+  bruto: f.bruto,
+  descuento: f.descuento,
+  total: f.total,
+  pagado: f.pagado,
+  saldo: f.saldo
+});
+const cToDoc = c => ({
+  tipo: "Factura de compra",
+  num: pad("C", c.n),
+  fecha: c.fecha,
+  punto: c.punto,
+  subtipo: c.pago,
+  party: {
+    rol: "Proveedor",
+    ...(c.proveedorData || {
+      nombre: c.proveedor
+    })
+  },
+  items: c.items.map(i => ({
+    nom: i.nom,
+    cant: i.cant,
+    precio: i.costo
+  })),
+  bruto: c.total,
+  descuento: 0,
+  total: c.total,
+  pagado: c.pago === "Contado" ? c.total : 0,
+  saldo: c.pago === "Contado" ? 0 : c.total
+});
+const nToDoc = n => ({
+  tipo: n.tipo,
+  num: pad("N", n.n),
+  fecha: n.fecha,
+  punto: n.punto,
+  subtipo: n.motivo,
+  party: {
+    rol: n.rol,
+    ...(n.partyData || {
+      nombre: n.party
+    })
+  },
+  items: n.items.map(i => ({
+    nom: i.nom,
+    cant: i.cant,
+    precio: i.precio
+  })),
+  bruto: n.total,
+  descuento: 0,
+  total: n.total,
+  pagado: 0,
+  saldo: 0,
+  esNota: true
+});
+function docHTML(o) {
+  const rows = o.items.map(i => `<tr><td>${i.nom}</td><td class=c>${i.cant}</td><td class=r>${money(i.precio)}</td><td class=r>${money(i.cant * i.precio)}</td></tr>`).join("");
+  const p = o.party || {};
+  const dat = [p.ident && "ID/NIT: " + p.ident, p.dir && "Dir: " + p.dir, p.tel && "Tel: " + p.tel].filter(Boolean).join("<br>");
+  const pagos = o.esNota ? "" : `<tr><td colspan=3 class=r>Pagado</td><td class=r>${money(o.pagado)}</td></tr><tr><td colspan=3 class=r><b>Saldo</b></td><td class=r><b>${money(o.saldo)}</b></td></tr>`;
+  return `<!doctype html><html lang=es><head><meta charset=utf-8><meta name=viewport content="width=device-width,initial-scale=1"><title>${o.tipo} ${o.num}</title><style>body{font-family:system-ui,-apple-system,Segoe UI,Arial,sans-serif;color:#152922;max-width:640px;margin:24px auto;padding:0 18px;font-size:14px}h1{font-size:19px;margin:0 0 2px}.mut{color:#67796F}.box{border:1px solid #E4EDE8;border-radius:10px;padding:12px 14px;margin:14px 0}table{width:100%;border-collapse:collapse;margin-top:8px}th,td{padding:8px 6px;border-bottom:1px solid #E4EDE8;text-align:left}th{font-size:12px;text-transform:uppercase;color:#67796F}.c{text-align:center}.r{text-align:right}.tot{font-size:16px;color:#0E9E74}@media print{body{margin:0}}</style></head><body><div style="display:flex;justify-content:space-between;align-items:flex-start"><div><h1>Mi Negocio</h1><div class=mut>Cosméticos</div></div><div style="text-align:right"><h1>${o.tipo}</h1><div class=mut>${o.num} · ${o.fecha}</div><div class=mut>Punto: ${o.punto || "-"}${o.subtipo ? " · " + o.subtipo : ""}</div></div></div><div class=box><b>${p.rol}:</b> ${p.nombre || "-"}${dat ? "<br>" + dat : ""}</div><table><thead><tr><th>Producto</th><th class=c>Cant</th><th class=r>V. unit</th><th class=r>Total</th></tr></thead><tbody>${rows}<tr><td colspan=3 class=r>Bruto</td><td class=r>${money(o.bruto)}</td></tr>${o.descuento ? `<tr><td colspan=3 class=r>Descuento</td><td class=r>- ${money(o.descuento)}</td></tr>` : ""}<tr><td colspan=3 class=r><b>Total</b></td><td class="r tot"><b>${money(o.total)}</b></td></tr>${pagos}</tbody></table><p class=mut style="margin-top:22px;font-size:12px">Documento generado por Mi Negocio. ${o.esNota ? "Nota de devolución." : "Gracias por su compra."}</p></body></html>`;
+}
+const S = `
+:root{--pri:#0E9E74;--pri2:#0B7A5B;--ink:#152922;--ink2:#12201B;--mut:#67796F;--bg:#F4F8F5;--card:#fff;--line:#E4EDE8;--red:#E5484D;--amber:#C98A00;--f:system-ui,-apple-system,'Segoe UI',Roboto,Helvetica,Arial,sans-serif}
+*{box-sizing:border-box}
+.app{max-width:560px;margin:0 auto;min-height:100vh;min-height:100dvh;background:var(--bg);font-family:var(--f);color:var(--ink);padding-bottom:calc(80px + env(safe-area-inset-bottom));-webkit-text-size-adjust:100%}
+.hd{position:sticky;top:0;z-index:10;background:var(--pri);color:#fff;padding:calc(15px + env(safe-area-inset-top)) 18px 15px;display:flex;align-items:center;justify-content:space-between}
+.hd h1{margin:0;font-size:18px;font-weight:700}.hd .sub{font-size:12px;opacity:.9}
+.gear{background:rgba(255,255,255,.16);border:none;color:#fff;width:38px;height:38px;border-radius:10px;display:grid;place-items:center;cursor:pointer}
+.wrap{padding:16px}
+h2{font-size:20px;margin:2px 0 4px;letter-spacing:-.02em}
+.lead{color:var(--mut);font-size:14px;margin:0 0 14px}
+.eb{font-size:11px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--pri)}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px;margin-bottom:12px}
+.card h3{margin:0 0 10px;font-size:15px;display:flex;align-items:center;gap:8px}
+.kpis{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px}
+.kpi{background:var(--ink2);color:#fff;border-radius:14px;padding:14px}
+.kpi .l{font-size:11.5px;color:#A9BDB4;text-transform:uppercase;letter-spacing:.06em}
+.kpi .v{font-size:21px;font-weight:800;margin-top:4px}
+.kpi.g .v{color:#59E3AE}.kpi.r .v{color:#FF9A9C}.kpi.a .v{color:#F1C265}
+.qa{display:flex;gap:10px;margin-bottom:14px}
+.qa button{flex:1;border:none;border-radius:13px;padding:14px;font-family:var(--f);font-weight:700;font-size:14px;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:6px}
+.qa .v{background:var(--pri);color:#fff}.qa .e{background:#fff;color:var(--ink);border:1.5px solid var(--line)}
+.row{display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-top:1px solid var(--line);font-size:14px;gap:10px}
+.row:first-child{border-top:none}.row .nm{font-weight:600}.row .meta{font-size:12px;color:var(--mut)}
+.tag{font-size:11px;font-weight:700;padding:3px 9px;border-radius:20px;white-space:nowrap}
+.tag.red{background:#FDECEC;color:var(--red)}.tag.amber{background:#FBF3E0;color:var(--amber)}.tag.ok{background:#E6F6EF;color:var(--pri)}.tag.off{background:#EEF1EF;color:var(--mut)}
+.bar{height:7px;background:#EAF1EC;border-radius:6px;overflow:hidden;margin-top:6px}.bar i{display:block;height:100%;background:var(--pri)}
+label{display:block;font-size:12px;font-weight:700;color:var(--mut);text-transform:uppercase;letter-spacing:.04em;margin:12px 0 6px}
+select,input{width:100%;font-family:var(--f);font-size:16px;padding:12px;border:1.5px solid var(--line);border-radius:11px;background:#fff;color:var(--ink)}
+.btn{width:100%;border:none;background:var(--pri);color:#fff;font-family:var(--f);font-weight:700;font-size:15px;padding:14px;border-radius:12px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;margin-top:16px}
+.btn:disabled{opacity:.45}
+.btn.g{background:#fff;color:var(--ink);border:1.5px solid var(--line)}
+.btn.r{background:#FDECEC;color:var(--red);border:none}
+.chips{display:flex;gap:7px;overflow-x:auto;padding-bottom:4px;margin-bottom:12px}
+.chip{white-space:nowrap;font-size:13px;font-weight:600;padding:8px 13px;border-radius:20px;border:1.5px solid var(--line);background:#fff;color:var(--mut);cursor:pointer}
+.chip.on{background:var(--pri);color:#fff;border-color:var(--pri)}
+.stepper{display:flex;align-items:center;gap:10px}.stepper button{width:36px;height:36px;border-radius:10px;border:1.5px solid var(--line);background:#fff;font-size:19px;font-weight:700;cursor:pointer;flex-shrink:0}.stepper input{text-align:center}
+.tabbar{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:560px;background:#fff;border-top:1px solid var(--line);display:flex;z-index:20;padding-bottom:env(safe-area-inset-bottom)}
+.tabbar button{flex:1;border:none;background:none;padding:9px 4px 8px;display:flex;flex-direction:column;align-items:center;gap:3px;font-family:var(--f);font-size:10.5px;color:var(--mut);cursor:pointer}
+.tabbar button.on{color:var(--pri)}
+.banner{background:#FBF3E0;border:1px solid #F1E2BC;color:#7A5B00;border-radius:12px;padding:12px 14px;font-size:13px;margin-bottom:14px;display:flex;gap:10px;align-items:flex-start}
+.banner button{margin-top:6px;background:none;border:none;color:var(--pri);font-weight:700;font-family:var(--f);cursor:pointer;padding:0;font-size:13px}
+.empty{text-align:center;color:var(--mut);padding:26px 10px;font-size:14px}
+.toast{position:fixed;bottom:90px;left:50%;transform:translateX(-50%);background:var(--ink);color:#fff;padding:11px 18px;border-radius:24px;font-size:14px;font-weight:600;z-index:40;max-width:90%;text-align:center}
+.seg{display:flex;background:#EEF3F0;border-radius:12px;padding:4px;gap:4px}
+.seg button{flex:1;border:none;background:none;padding:10px;border-radius:9px;font-family:var(--f);font-weight:700;font-size:14px;color:var(--mut);cursor:pointer}
+.seg button.on{background:#fff;color:var(--pri);box-shadow:0 1px 3px rgba(0,0,0,.08)}
+.acts{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:14px}
+.acts button{border:1.5px solid var(--line);background:#fff;border-radius:11px;padding:11px;font-family:var(--f);font-weight:600;font-size:13px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:7px;color:var(--ink)}
+.acts button.dr{color:var(--red);border-color:#F6D5D5}
+.menu button{width:100%;text-align:left;background:#fff;border:1px solid var(--line);border-radius:13px;padding:16px;margin-bottom:10px;font-family:var(--f);font-size:15px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:12px;color:var(--ink)}
+.menu .ic{width:40px;height:40px;border-radius:11px;background:#E6F6EF;color:var(--pri);display:grid;place-items:center;flex-shrink:0}
+.mv{display:flex;align-items:center;gap:11px;padding:10px 0;border-top:1px solid var(--line)}.mv:first-child{border-top:none}
+.mv .dot{width:32px;height:32px;border-radius:9px;display:grid;place-items:center;flex-shrink:0;font-weight:800}
+.mv .din{background:#E6F6EF;color:var(--pri)}.mv .dout{background:#FDECEC;color:var(--red)}
+.cart{display:flex;align-items:center;gap:8px;padding:10px 0;border-top:1px solid var(--line)}.cart:first-child{border-top:none}
+.cart .x{width:28px;height:28px;border:none;background:#FDECEC;color:var(--red);border-radius:8px;cursor:pointer;flex-shrink:0}
+.mini{width:78px !important;padding:8px !important;text-align:right}
+.link{background:none;border:none;color:var(--pri);font-weight:700;font-family:var(--f);cursor:pointer;font-size:13px;padding:0;display:inline-flex;align-items:center;gap:5px}
+.ov{position:fixed;inset:0;background:rgba(10,20,16,.5);z-index:50;display:flex;align-items:flex-end;justify-content:center}
+.sheet{background:#fff;width:100%;max-width:560px;max-height:92vh;overflow:auto;border-radius:18px 18px 0 0;padding:18px}
+.docv{border:1px solid var(--line);border-radius:12px;padding:16px;font-size:13.5px}
+.docv table{width:100%;border-collapse:collapse;margin-top:8px}.docv td,.docv th{padding:7px 4px;border-bottom:1px solid var(--line);text-align:left}.docv th{font-size:11px;text-transform:uppercase;color:var(--mut)}.docv .c{text-align:center}.docv .r{text-align:right}
+`;
+export default function App() {
+  const [view, setView] = useState("inicio");
+  const [ejemplo, setEjemplo] = useState(true);
+  const [loaded, setLoaded] = useState(false);
+  const [toast, setToast] = useState("");
+  const [doc, setDoc] = useState(null);
+  const [products, setProducts] = useState(() => seedProducts(true));
+  const [facturas, setFacturas] = useState(seedFacturas);
+  const [abonos, setAbonos] = useState(seedAbonos);
+  const [compras, setCompras] = useState(seedCompras);
+  const [notas, setNotas] = useState([]);
+  const [movs, setMovs] = useState(seedMovs);
+  const [expenses, setExpenses] = useState(seedExpenses);
+  const [deudas, setDeudas] = useState(seedDeudas);
+  const [points, setPoints] = useState(POINTS0);
+  const [cats, setCats] = useState(CATS0);
+  const [clients, setClients] = useState(seedClients);
+  const [suppliers, setSuppliers] = useState(seedSuppliers);
+  const [concEnt, setConcEnt] = useState(CONC_ENT0);
+  const [concSal, setConcSal] = useState(CONC_SAL0);
+  const SKEY = "erp_negocio_v3";
+  const toObj = arr => (arr || []).map(c => typeof c === "string" ? cli(c) : c);
+  useEffect(() => {
+    (async () => {
+      try {
+        if (window.storage) {
+          const r = await window.storage.get(SKEY);
+          if (r && r.value) {
+            const x = JSON.parse(r.value);
+            if (x.products) setProducts(x.products);
+            if (x.facturas) setFacturas(x.facturas);
+            if (x.abonos) setAbonos(x.abonos);
+            if (x.compras) setCompras(x.compras);
+            if (x.notas) setNotas(x.notas);
+            if (x.movs) setMovs(x.movs);
+            if (x.expenses) setExpenses(x.expenses);
+            if (x.deudas) setDeudas(x.deudas);
+            if (x.points) setPoints(x.points);
+            if (x.cats) setCats(x.cats);
+            if (x.clients) setClients(toObj(x.clients));
+            if (x.suppliers) setSuppliers(toObj(x.suppliers));
+            if (x.concEnt) setConcEnt(x.concEnt);
+            if (x.concSal) setConcSal(x.concSal);
+            setEjemplo(!!x.ejemplo);
+          }
+        }
+      } catch (e) {}
+      setLoaded(true);
+    })();
+  }, []);
+  useEffect(() => {
+    if (!loaded) return;
+    (async () => {
+      try {
+        if (window.storage) await window.storage.set(SKEY, JSON.stringify({
+          products,
+          facturas,
+          abonos,
+          compras,
+          notas,
+          movs,
+          expenses,
+          deudas,
+          points,
+          cats,
+          clients,
+          suppliers,
+          concEnt,
+          concSal,
+          ejemplo
+        }));
+      } catch (e) {}
+    })();
+  }, [products, facturas, abonos, compras, notas, movs, expenses, deudas, points, cats, clients, suppliers, concEnt, concSal, ejemplo, loaded]);
+  const flash = m => {
+    setToast(m);
+    setTimeout(() => setToast(""), 1900);
+  };
+  const go = v => {
+    setView(v);
+    window.scrollTo(0, 0);
+  };
+  const inventarioCero = () => {
+    setProducts(ps => ps.map(p => ({
+      ...p,
+      stock: 0
+    })));
+    setEjemplo(false);
+    flash("Inventario en cero");
+  };
+  const resetReal = () => {
+    setProducts(seedProducts(false));
+    setFacturas([]);
+    setAbonos([]);
+    setCompras([]);
+    setNotas([]);
+    setMovs([]);
+    setExpenses([]);
+    setDeudas([]);
+    setClients([]);
+    setSuppliers([]);
+    setEjemplo(false);
+    flash("Listo, empieza con lo tuyo");
+    go("inventario");
+  };
+  const hasMovs = cod => movs.some(m => m.cod === cod) || facturas.some(f => f.items.some(i => i.cod === cod)) || compras.some(c => c.items.some(i => i.cod === cod));
+  const logMov = m => setMovs(prev => [{
+    id: uid(),
+    fecha: hoy(),
+    ...m
+  }, ...prev]);
+  const showDoc = o => setDoc(o);
+  const activos = products.filter(p => p.activo);
+  const ventasMes = facturas.filter(f => enMes(f.fecha)).reduce((a, f) => a + f.total, 0);
+  const gastosMes = expenses.filter(e => enMes(e.fecha)).reduce((a, e) => a + e.monto, 0);
+  const ganancia = ventasMes - gastosMes;
+  const bajos = activos.filter(p => p.stock <= LOW).sort((a, b) => a.stock - b.stock);
+  const valorInv = activos.reduce((a, p) => a + p.stock * p.costo, 0);
+  const topVendidos = (() => {
+    const m = {};
+    facturas.forEach(f => f.items.forEach(it => {
+      m[it.cod] = m[it.cod] || {
+        nom: it.nom,
+        cant: 0,
+        total: 0
+      };
+      m[it.cod].cant += it.cant;
+      m[it.cod].total += it.cant * it.precio;
+    }));
+    return Object.values(m).sort((a, b) => b.cant - a.cant);
+  })();
+  const porPunto = points.map(p => ({
+    p,
+    ventas: facturas.filter(f => f.punto === p && enMes(f.fecha)).reduce((a, f) => a + f.total, 0),
+    gastos: expenses.filter(e => e.punto === p && enMes(e.fecha)).reduce((a, e) => a + e.monto, 0)
+  }));
+  const porCobrar = facturas.reduce((a, f) => a + f.saldo, 0);
+  const comprasContado = compras.filter(c => c.pago === "Contado").reduce((a, c) => a + c.total, 0);
+  const caja = facturas.reduce((a, f) => a + f.pagado, 0) - expenses.reduce((a, e) => a + e.monto, 0) - deudas.reduce((a, x) => a + x.pagado, 0) - comprasContado;
+  return React.createElement("div", {
+    className: "app"
+  }, React.createElement("style", null, S), React.createElement("div", {
+    className: "hd"
+  }, React.createElement("div", null, React.createElement("h1", null, "Mi Negocio"), React.createElement("div", {
+    className: "sub"
+  }, "Cosméticos · ", points.length, " puntos")), React.createElement("button", {
+    className: "gear",
+    onClick: () => go("maestros")
+  }, React.createElement(Settings, {
+    size: 20
+  }))), toast && React.createElement("div", {
+    className: "toast"
+  }, toast), doc && React.createElement(DocSheet, {
+    doc: doc,
+    onClose: () => setDoc(null),
+    flash: flash
+  }), view === "inicio" && React.createElement("div", {
+    className: "wrap"
+  }, ejemplo && React.createElement("div", {
+    className: "banner"
+  }, React.createElement(AlertTriangle, {
+    size: 18
+  }), React.createElement("div", null, "Estás viendo ", React.createElement("b", null, "datos de ejemplo"), ". ", React.createElement("button", {
+    onClick: resetReal
+  }, "Borrar y empezar con lo mío →"))), React.createElement("div", {
+    className: "eb"
+  }, "Resumen del mes"), React.createElement("h2", null, "Tu negocio hoy"), React.createElement("div", {
+    className: "kpis"
+  }, React.createElement("div", {
+    className: "kpi " + (ganancia >= 0 ? "g" : "r")
+  }, React.createElement("div", {
+    className: "l"
+  }, "Ganancia del mes"), React.createElement("div", {
+    className: "v"
+  }, money(ganancia))), React.createElement("div", {
+    className: "kpi"
+  }, React.createElement("div", {
+    className: "l"
+  }, "Ventas del mes"), React.createElement("div", {
+    className: "v"
+  }, money(ventasMes))), React.createElement("div", {
+    className: "kpi a"
+  }, React.createElement("div", {
+    className: "l"
+  }, "Por cobrar"), React.createElement("div", {
+    className: "v"
+  }, money(porCobrar))), React.createElement("div", {
+    className: "kpi"
+  }, React.createElement("div", {
+    className: "l"
+  }, "Caja"), React.createElement("div", {
+    className: "v"
+  }, money(caja)))), React.createElement("div", {
+    className: "qa"
+  }, React.createElement("button", {
+    className: "v",
+    onClick: () => go("ventas")
+  }, React.createElement(ShoppingCart, {
+    size: 20
+  }), " Vender"), React.createElement("button", {
+    className: "e",
+    onClick: () => go("movimientos")
+  }, React.createElement(ArrowLeftRight, {
+    size: 20
+  }), " Entrada/Salida")), React.createElement("div", {
+    className: "card"
+  }, React.createElement("h3", null, React.createElement(AlertTriangle, {
+    size: 17,
+    color: "#E5484D"
+  }), " Stock bajo o agotado"), bajos.length === 0 ? React.createElement("div", {
+    className: "empty"
+  }, "Todo con buen stock") : bajos.slice(0, 6).map(p => React.createElement("div", {
+    className: "row",
+    key: p.cod
+  }, React.createElement("div", null, React.createElement("div", {
+    className: "nm"
+  }, p.nom), React.createElement("div", {
+    className: "meta"
+  }, p.cat)), React.createElement("span", {
+    className: "tag " + (p.stock === 0 ? "red" : "amber")
+  }, p.stock === 0 ? "Agotado" : "Quedan " + p.stock))), bajos.length > 6 && React.createElement("div", {
+    className: "meta",
+    style: {
+      marginTop: 8
+    }
+  }, "y ", bajos.length - 6, " más")), React.createElement("div", {
+    className: "card"
+  }, React.createElement("h3", null, React.createElement(TrendingUp, {
+    size: 17,
+    color: "#0E9E74"
+  }), " Productos más vendidos"), topVendidos.length === 0 ? React.createElement("div", {
+    className: "empty"
+  }, "Aún no hay ventas") : topVendidos.slice(0, 5).map((t, i) => React.createElement("div", {
+    className: "row",
+    key: i
+  }, React.createElement("div", null, React.createElement("div", {
+    className: "nm"
+  }, t.nom), React.createElement("div", {
+    className: "meta"
+  }, money(t.total), " en ventas")), React.createElement("span", {
+    className: "tag ok"
+  }, t.cant, " und")))), React.createElement("div", {
+    className: "card"
+  }, React.createElement("h3", null, React.createElement(Store, {
+    size: 17,
+    color: "#0E9E74"
+  }), " Por punto (este mes)"), porPunto.map(g => React.createElement("div", {
+    className: "row",
+    key: g.p
+  }, React.createElement("div", {
+    className: "nm"
+  }, g.p), React.createElement("div", {
+    style: {
+      textAlign: "right",
+      fontSize: 13
+    }
+  }, React.createElement("div", {
+    style: {
+      color: "var(--pri)",
+      fontWeight: 700
+    }
+  }, money(g.ventas), " ventas"), React.createElement("div", {
+    className: "meta"
+  }, money(g.gastos), " gastos")))))), view === "inventario" && React.createElement(Inventario, {
+    products,
+    setProducts,
+    cats,
+    suppliers,
+    hasMovs,
+    logMov,
+    flash
+  }), view === "movimientos" && React.createElement(Movimientos, {
+    products: activos,
+    setProducts,
+    movs,
+    points,
+    suppliers,
+    concEnt,
+    concSal,
+    logMov,
+    flash
+  }), view === "ventas" && React.createElement(Ventas, {
+    products,
+    setProducts,
+    facturas,
+    setFacturas,
+    abonos,
+    setAbonos,
+    points,
+    clients,
+    logMov,
+    flash,
+    showDoc
+  }), view === "compras" && React.createElement(Compras, {
+    products,
+    setProducts,
+    compras,
+    setCompras,
+    deudas,
+    setDeudas,
+    points,
+    suppliers,
+    logMov,
+    flash,
+    showDoc
+  }), view === "devoluciones" && React.createElement(Devoluciones, {
+    products,
+    setProducts,
+    notas,
+    setNotas,
+    points,
+    clients,
+    suppliers,
+    logMov,
+    flash,
+    showDoc
+  }), view === "mas" && React.createElement(Mas, {
+    go
+  }), view === "gastos" && React.createElement(Gastos, {
+    expenses,
+    setExpenses,
+    points,
+    flash
+  }), view === "tesoreria" && React.createElement(Tesoreria, {
+    facturas,
+    setFacturas,
+    abonos,
+    setAbonos,
+    deudas,
+    setDeudas,
+    suppliers,
+    caja,
+    flash
+  }), view === "informes" && React.createElement(Informes, {
+    products: activos,
+    valorInv,
+    topVendidos,
+    points,
+    facturas,
+    compras,
+    notas,
+    abonos,
+    expenses,
+    deudas,
+    clients,
+    movs,
+    caja,
+    showDoc
+  }), view === "maestros" && React.createElement(Maestros, {
+    points,
+    setPoints,
+    cats,
+    setCats,
+    clients,
+    setClients,
+    suppliers,
+    setSuppliers,
+    concEnt,
+    setConcEnt,
+    concSal,
+    setConcSal,
+    onReset: resetReal,
+    onCero: inventarioCero,
+    flash
+  }), React.createElement("div", {
+    className: "tabbar"
+  }, [["inicio", "Inicio", Home], ["inventario", "Inventario", Package], ["movimientos", "Movim.", ArrowLeftRight], ["ventas", "Ventas", ShoppingCart], ["mas", "Más", MoreHorizontal]].map(([v, t, Ic]) => React.createElement("button", {
+    key: v,
+    className: view === v || v === "mas" && ["gastos", "tesoreria", "informes", "maestros", "compras", "devoluciones"].includes(view) ? "on" : "",
+    onClick: () => go(v)
+  }, React.createElement(Ic, {
+    size: 21
+  }), React.createElement("span", null, t)))));
+}
+function DocSheet({
+  doc,
+  onClose,
+  flash
+}) {
+  const descargar = () => {
+    try {
+      const blob = new Blob([docHTML(doc)], {
+        type: "text/html"
+      });
+      const url = URL.createObjectURL(blob);
+      const isIOS = /iP(hone|ad|od)/.test(navigator.userAgent) || navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1;
+      if (isIOS) {
+        window.open(url, "_blank");
+        flash("Documento abierto, usa Compartir para guardar o imprimir");
+      } else {
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = doc.num + ".html";
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        flash("Documento descargado");
+      }
+      setTimeout(() => URL.revokeObjectURL(url), 4000);
+    } catch (e) {
+      flash("No se pudo generar el documento aquí");
+    }
+  };
+  const p = doc.party || {};
+  return React.createElement("div", {
+    className: "ov",
+    onClick: onClose
+  }, React.createElement("div", {
+    className: "sheet",
+    onClick: e => e.stopPropagation()
+  }, React.createElement("div", {
+    style: {
+      display: "flex",
+      justifyContent: "space-between",
+      alignItems: "center",
+      marginBottom: 12
+    }
+  }, React.createElement("b", {
+    style: {
+      fontSize: 16
+    }
+  }, doc.tipo, " · ", doc.num), React.createElement("button", {
+    className: "link",
+    onClick: onClose
+  }, "Cerrar")), React.createElement("div", {
+    className: "docv"
+  }, React.createElement("div", {
+    style: {
+      display: "flex",
+      justifyContent: "space-between"
+    }
+  }, React.createElement("div", null, React.createElement("b", null, "Mi Negocio"), React.createElement("div", {
+    className: "meta"
+  }, "Cosméticos")), React.createElement("div", {
+    style: {
+      textAlign: "right"
+    }
+  }, React.createElement("div", {
+    className: "meta"
+  }, doc.num, " · ", doc.fecha), React.createElement("div", {
+    className: "meta"
+  }, doc.punto, doc.subtipo ? " · " + doc.subtipo : ""))), React.createElement("div", {
+    style: {
+      margin: "10px 0",
+      padding: "10px 12px",
+      background: "#F4F8F5",
+      borderRadius: 8
+    }
+  }, React.createElement("b", null, p.rol, ":"), " ", p.nombre || "-", (p.ident || p.dir || p.tel) && React.createElement("div", {
+    className: "meta",
+    style: {
+      marginTop: 4
+    }
+  }, [p.ident && "ID/NIT: " + p.ident, p.dir, p.tel].filter(Boolean).join(" · "))), React.createElement("table", null, React.createElement("thead", null, React.createElement("tr", null, React.createElement("th", null, "Producto"), React.createElement("th", {
+    className: "c"
+  }, "Cant"), React.createElement("th", {
+    className: "r"
+  }, "V. unit"), React.createElement("th", {
+    className: "r"
+  }, "Total"))), React.createElement("tbody", null, doc.items.map((i, k) => React.createElement("tr", {
+    key: k
+  }, React.createElement("td", null, i.nom), React.createElement("td", {
+    className: "c"
+  }, i.cant), React.createElement("td", {
+    className: "r"
+  }, money(i.precio)), React.createElement("td", {
+    className: "r"
+  }, money(i.cant * i.precio)))), doc.descuento ? React.createElement("tr", null, React.createElement("td", {
+    colSpan: 3,
+    className: "r"
+  }, "Descuento"), React.createElement("td", {
+    className: "r"
+  }, "- ", money(doc.descuento))) : null, React.createElement("tr", null, React.createElement("td", {
+    colSpan: 3,
+    className: "r"
+  }, React.createElement("b", null, "Total")), React.createElement("td", {
+    className: "r"
+  }, React.createElement("b", {
+    style: {
+      color: "var(--pri)"
+    }
+  }, money(doc.total)))), !doc.esNota && React.createElement(React.Fragment, null, React.createElement("tr", null, React.createElement("td", {
+    colSpan: 3,
+    className: "r"
+  }, "Pagado"), React.createElement("td", {
+    className: "r"
+  }, money(doc.pagado))), React.createElement("tr", null, React.createElement("td", {
+    colSpan: 3,
+    className: "r"
+  }, React.createElement("b", null, "Saldo")), React.createElement("td", {
+    className: "r"
+  }, React.createElement("b", {
+    style: {
+      color: doc.saldo > 0 ? "var(--amber)" : "var(--pri)"
+    }
+  }, money(doc.saldo)))))))), React.createElement("button", {
+    className: "btn",
+    onClick: descargar
+  }, React.createElement(Download, {
+    size: 18
+  }), " Descargar documento"), React.createElement("p", {
+    className: "meta",
+    style: {
+      textAlign: "center",
+      marginTop: 8
+    }
+  }, "Se descarga como archivo para abrir o imprimir.")));
+}
+function Inventario({
+  products,
+  setProducts,
+  cats,
+  suppliers,
+  hasMovs,
+  logMov,
+  flash
+}) {
+  const [cat, setCat] = useState("Todas");
+  const [verInact, setVerInact] = useState(false);
+  const [edit, setEdit] = useState(null);
+  const [nuevo, setNuevo] = useState(false);
+  let list = products.filter(p => (verInact ? !p.activo : p.activo) && (cat === "Todas" || p.cat === cat));
+  const addStock = (cod, n) => setProducts(ps => ps.map(x => x.cod === cod ? {
+    ...x,
+    stock: Math.max(0, x.stock + n)
+  } : x));
+  if (nuevo) return React.createElement(ProductForm, {
+    cats: cats,
+    suppliers: suppliers,
+    existing: products.map(p => p.cod),
+    onSave: np => {
+      setProducts([...products, np]);
+      if (np.stock > 0) logMov({
+        tipo: "entrada",
+        concepto: "Inventario inicial",
+        cod: np.cod,
+        nom: np.nom,
+        cant: np.stock,
+        punto: "",
+        nota: ""
+      });
+      setNuevo(false);
+      flash("Producto creado");
+    },
+    onCancel: () => setNuevo(false)
+  });
+  if (edit) return React.createElement(ProductEdit, {
+    p: edit,
+    cats: cats,
+    suppliers: suppliers,
+    tieneMovs: hasMovs(edit.cod),
+    onSave: np => {
+      setProducts(ps => ps.map(x => x.cod === np.cod ? np : x));
+      setEdit(null);
+      flash("Guardado");
+    },
+    onCopy: np => {
+      setProducts(ps => [...ps, np]);
+      setEdit(null);
+      flash("Producto copiado");
+    },
+    onDelete: () => {
+      setProducts(ps => ps.filter(x => x.cod !== edit.cod));
+      setEdit(null);
+      flash("Producto borrado");
+    },
+    onCancel: () => setEdit(null)
+  });
+  return React.createElement("div", {
+    className: "wrap"
+  }, React.createElement("div", {
+    className: "eb"
+  }, "Inventario"), React.createElement("h2", null, "Tus productos"), React.createElement("p", {
+    className: "lead"
+  }, products.filter(p => p.activo).length, " activos · valor en costo ", money(products.filter(p => p.activo).reduce((a, p) => a + p.stock * p.costo, 0))), React.createElement("div", {
+    className: "chips"
+  }, ["Todas", ...cats].map(c => React.createElement("div", {
+    key: c,
+    className: "chip" + (cat === c ? " on" : ""),
+    onClick: () => setCat(c)
+  }, c))), React.createElement("div", {
+    style: {
+      display: "flex",
+      gap: 8,
+      marginBottom: 8
+    }
+  }, React.createElement("button", {
+    className: "btn",
+    style: {
+      margin: 0
+    },
+    onClick: () => setNuevo(true)
+  }, React.createElement(Plus, {
+    size: 18
+  }), " Nuevo producto"), React.createElement("button", {
+    className: "btn g",
+    style: {
+      margin: 0,
+      width: "auto",
+      padding: "0 14px",
+      fontSize: 13
+    },
+    onClick: () => setVerInact(!verInact)
+  }, verInact ? "Ver activos" : "Ver inactivos")), list.length === 0 ? React.createElement("div", {
+    className: "empty"
+  }, "Sin productos en esta vista") : list.map(p => React.createElement("div", {
+    className: "card",
+    key: p.cod,
+    style: {
+      padding: 14
+    }
+  }, React.createElement("div", {
+    style: {
+      display: "flex",
+      justifyContent: "space-between",
+      alignItems: "flex-start",
+      gap: 10
+    }
+  }, React.createElement("div", null, React.createElement("div", {
+    className: "nm",
+    style: {
+      fontWeight: 700
+    }
+  }, p.nom), React.createElement("div", {
+    className: "meta",
+    style: {
+      fontSize: 12
+    }
+  }, p.cod, " · ", p.cat, " · ", p.presentacion || p.unidad, " · vende ", money(p.precio))), React.createElement("span", {
+    className: "tag " + (!p.activo ? "off" : p.stock === 0 ? "red" : p.stock <= LOW ? "amber" : "ok")
+  }, !p.activo ? "Inactivo" : p.stock + " und")), React.createElement("div", {
+    style: {
+      display: "flex",
+      gap: 8,
+      marginTop: 12
+    }
+  }, React.createElement("div", {
+    className: "stepper",
+    style: {
+      flex: 1
+    }
+  }, React.createElement("button", {
+    onClick: () => addStock(p.cod, -1)
+  }, "−"), React.createElement("button", {
+    onClick: () => addStock(p.cod, 1)
+  }, "+"), React.createElement("span", {
+    style: {
+      fontSize: 12,
+      color: "var(--mut)"
+    }
+  }, "ajuste rápido")), React.createElement("button", {
+    className: "btn g",
+    style: {
+      width: "auto",
+      margin: 0,
+      padding: "10px 16px"
+    },
+    onClick: () => setEdit(p)
+  }, "Editar")))));
+}
+function ProductForm({
+  cats,
+  suppliers,
+  existing,
+  onSave,
+  onCancel
+}) {
+  const [f, setF] = useState({
+    cod: "",
+    cat: cats[0],
+    nom: "",
+    unidad: "Und",
+    presentacion: "",
+    proveedor: "",
+    precio: 0,
+    costo: 0,
+    stock: 0,
+    activo: true
+  });
+  const set = (k, v) => setF({
+    ...f,
+    [k]: v
+  });
+  const valid = f.cod.trim() && f.nom.trim() && !existing.includes(f.cod.trim());
+  return React.createElement("div", {
+    className: "wrap"
+  }, React.createElement("button", {
+    className: "btn g",
+    style: {
+      width: "auto",
+      margin: "0 0 14px",
+      padding: "8px 14px"
+    },
+    onClick: onCancel
+  }, React.createElement(ArrowLeft, {
+    size: 16
+  }), " Volver"), React.createElement("h2", null, "Nuevo producto"), React.createElement("label", null, "Código"), React.createElement("input", {
+    value: f.cod,
+    onChange: e => set("cod", e.target.value),
+    placeholder: "Ej: S007"
+  }), existing.includes(f.cod.trim()) && f.cod && React.createElement("div", {
+    className: "meta",
+    style: {
+      color: "var(--red)"
+    }
+  }, "Ese código ya existe."), React.createElement("label", null, "Nombre"), React.createElement("input", {
+    value: f.nom,
+    onChange: e => set("nom", e.target.value),
+    placeholder: "Nombre del producto"
+  }), React.createElement("label", null, "Categoría"), React.createElement("select", {
+    value: f.cat,
+    onChange: e => set("cat", e.target.value)
+  }, cats.map(c => React.createElement("option", {
+    key: c
+  }, c))), React.createElement("div", {
+    style: {
+      display: "flex",
+      gap: 10
+    }
+  }, React.createElement("div", {
+    style: {
+      flex: 1
+    }
+  }, React.createElement("label", null, "Unidad"), React.createElement("select", {
+    value: f.unidad,
+    onChange: e => set("unidad", e.target.value)
+  }, UNIDADES.map(u => React.createElement("option", {
+    key: u
+  }, u)))), React.createElement("div", {
+    style: {
+      flex: 1
+    }
+  }, React.createElement("label", null, "Presentación"), React.createElement("input", {
+    value: f.presentacion,
+    onChange: e => set("presentacion", e.target.value),
+    placeholder: "Ej: 500 ml"
+  }))), React.createElement("label", null, "Proveedor"), React.createElement("select", {
+    value: f.proveedor,
+    onChange: e => set("proveedor", e.target.value)
+  }, React.createElement("option", {
+    value: ""
+  }, "Sin asignar"), suppliers.map(s => React.createElement("option", {
+    key: s.nombre
+  }, s.nombre))), React.createElement("div", {
+    style: {
+      display: "flex",
+      gap: 10
+    }
+  }, React.createElement("div", {
+    style: {
+      flex: 1
+    }
+  }, React.createElement("label", null, "Precio venta"), React.createElement("input", {
+    type: "number",
+    value: f.precio,
+    onChange: e => set("precio", +e.target.value)
+  })), React.createElement("div", {
+    style: {
+      flex: 1
+    }
+  }, React.createElement("label", null, "Costo"), React.createElement("input", {
+    type: "number",
+    value: f.costo,
+    onChange: e => set("costo", +e.target.value)
+  }))), React.createElement("label", null, "Existencia inicial"), React.createElement("input", {
+    type: "number",
+    value: f.stock,
+    onChange: e => set("stock", +e.target.value)
+  }), React.createElement("button", {
+    className: "btn",
+    disabled: !valid,
+    onClick: () => onSave({
+      ...f,
+      cod: f.cod.trim(),
+      nom: f.nom.trim()
+    })
+  }, React.createElement(Check, {
+    size: 18
+  }), " Crear producto"));
+}
+function ProductEdit({
+  p,
+  cats,
+  suppliers,
+  tieneMovs,
+  onSave,
+  onCopy,
+  onDelete,
+  onCancel
+}) {
+  const [f, setF] = useState({
+    ...p
+  });
+  const [confirm, setConfirm] = useState(false);
+  const set = (k, v) => setF({
+    ...f,
+    [k]: v
+  });
+  return React.createElement("div", {
+    className: "wrap"
+  }, React.createElement("button", {
+    className: "btn g",
+    style: {
+      width: "auto",
+      margin: "0 0 14px",
+      padding: "8px 14px"
+    },
+    onClick: onCancel
+  }, React.createElement(ArrowLeft, {
+    size: 16
+  }), " Volver"), React.createElement("h2", null, p.nom), React.createElement("p", {
+    className: "lead"
+  }, p.cod, " ", !f.activo && "· producto inactivo"), React.createElement("label", null, "Nombre"), React.createElement("input", {
+    value: f.nom,
+    onChange: e => set("nom", e.target.value)
+  }), React.createElement("label", null, "Categoría"), React.createElement("select", {
+    value: f.cat,
+    onChange: e => set("cat", e.target.value)
+  }, cats.map(c => React.createElement("option", {
+    key: c
+  }, c))), React.createElement("div", {
+    style: {
+      display: "flex",
+      gap: 10
+    }
+  }, React.createElement("div", {
+    style: {
+      flex: 1
+    }
+  }, React.createElement("label", null, "Unidad"), React.createElement("select", {
+    value: f.unidad,
+    onChange: e => set("unidad", e.target.value)
+  }, UNIDADES.map(u => React.createElement("option", {
+    key: u
+  }, u)))), React.createElement("div", {
+    style: {
+      flex: 1
+    }
+  }, React.createElement("label", null, "Presentación"), React.createElement("input", {
+    value: f.presentacion,
+    onChange: e => set("presentacion", e.target.value)
+  }))), React.createElement("label", null, "Proveedor"), React.createElement("select", {
+    value: f.proveedor,
+    onChange: e => set("proveedor", e.target.value)
+  }, React.createElement("option", {
+    value: ""
+  }, "Sin asignar"), suppliers.map(s => React.createElement("option", {
+    key: s.nombre
+  }, s.nombre))), React.createElement("div", {
+    style: {
+      display: "flex",
+      gap: 10
+    }
+  }, React.createElement("div", {
+    style: {
+      flex: 1
+    }
+  }, React.createElement("label", null, "Precio venta"), React.createElement("input", {
+    type: "number",
+    value: f.precio,
+    onChange: e => set("precio", +e.target.value)
+  })), React.createElement("div", {
+    style: {
+      flex: 1
+    }
+  }, React.createElement("label", null, "Costo"), React.createElement("input", {
+    type: "number",
+    value: f.costo,
+    onChange: e => set("costo", +e.target.value)
+  }))), React.createElement("label", null, "Existencia"), React.createElement("input", {
+    type: "number",
+    value: f.stock,
+    onChange: e => set("stock", +e.target.value)
+  }), React.createElement("div", {
+    className: "card",
+    style: {
+      marginTop: 14,
+      background: "#E6F6EF",
+      border: "none"
+    }
+  }, React.createElement("div", {
+    className: "row",
+    style: {
+      borderTop: "none"
+    }
+  }, React.createElement("span", null, "Ganancia por unidad"), React.createElement("b", {
+    style: {
+      color: "var(--pri)"
+    }
+  }, money(f.precio - f.costo)))), React.createElement("button", {
+    className: "btn",
+    onClick: () => onSave(f)
+  }, React.createElement(Check, {
+    size: 18
+  }), " Guardar cambios"), React.createElement("div", {
+    className: "acts"
+  }, React.createElement("button", {
+    onClick: () => set("stock", 0)
+  }, React.createElement(Boxes, {
+    size: 15
+  }), " Poner en cero"), React.createElement("button", {
+    onClick: () => onCopy({
+      ...f,
+      cod: f.cod + "-2",
+      nom: f.nom + " (copia)",
+      activo: true
+    })
+  }, React.createElement(Copy, {
+    size: 15
+  }), " Copiar"), React.createElement("button", {
+    onClick: () => onSave({
+      ...f,
+      activo: !f.activo
+    })
+  }, React.createElement(Power, {
+    size: 15
+  }), " ", f.activo ? "Desactivar" : "Activar"), React.createElement("button", {
+    className: "dr",
+    onClick: () => setConfirm(true)
+  }, React.createElement(Trash2, {
+    size: 15
+  }), " Borrar")), confirm && (tieneMovs ? React.createElement("div", {
+    className: "banner",
+    style: {
+      marginTop: 12
+    }
+  }, React.createElement(AlertTriangle, {
+    size: 18
+  }), React.createElement("div", null, "Este producto ya tiene ventas o movimientos. Borrarlo dañaría tus informes. Mejor ", React.createElement("b", null, "desactívalo"), ": se esconde pero conserva su historial.")) : React.createElement("div", {
+    className: "card",
+    style: {
+      marginTop: 12,
+      borderColor: "#F6D5D5"
+    }
+  }, React.createElement("p", {
+    style: {
+      margin: "0 0 10px",
+      fontSize: 14
+    }
+  }, "¿Seguro que quieres borrar este producto? No tiene movimientos, se puede eliminar."), React.createElement("div", {
+    style: {
+      display: "flex",
+      gap: 8
+    }
+  }, React.createElement("button", {
+    className: "btn g",
+    style: {
+      margin: 0
+    },
+    onClick: () => setConfirm(false)
+  }, "Cancelar"), React.createElement("button", {
+    className: "btn r",
+    style: {
+      margin: 0
+    },
+    onClick: onDelete
+  }, "Sí, borrar")))));
+}
+function Movimientos({
+  products,
+  setProducts,
+  movs,
+  points,
+  suppliers,
+  concEnt,
+  concSal,
+  logMov,
+  flash
+}) {
+  const [tipo, setTipo] = useState("entrada");
+  const [concepto, setConcepto] = useState(concEnt[0]);
+  const [cod, setCod] = useState("");
+  const [cant, setCant] = useState(1);
+  const [punto, setPunto] = useState(points[0] || "");
+  const [prov, setProv] = useState("");
+  const [nota, setNota] = useState("");
+  const conceptos = tipo === "entrada" ? concEnt : concSal;
+  const prod = products.find(p => p.cod === cod);
+  const puede = prod && cant > 0 && (tipo === "entrada" || cant <= prod.stock);
+  const registrar = () => {
+    const delta = tipo === "entrada" ? cant : -cant;
+    setProducts(ps => ps.map(p => p.cod === cod ? {
+      ...p,
+      stock: Math.max(0, p.stock + delta)
+    } : p));
+    logMov({
+      tipo,
+      concepto,
+      cod,
+      nom: prod.nom,
+      cant,
+      punto,
+      nota: tipo === "entrada" && prov ? prov + (nota ? " · " + nota : "") : nota
+    });
+    flash(tipo === "entrada" ? "Entrada registrada" : "Salida registrada");
+    setCod("");
+    setCant(1);
+    setNota("");
+    setProv("");
+  };
+  const cambiar = t => {
+    setTipo(t);
+    setConcepto((t === "entrada" ? concEnt : concSal)[0]);
+    setCod("");
+    setCant(1);
+  };
+  return React.createElement("div", {
+    className: "wrap"
+  }, React.createElement("div", {
+    className: "eb"
+  }, "Inventario"), React.createElement("h2", null, "Entradas y salidas"), React.createElement("p", {
+    className: "lead"
+  }, "Todo movimiento de stock queda registrado por concepto."), React.createElement("div", {
+    className: "card"
+  }, React.createElement("div", {
+    className: "seg",
+    style: {
+      marginBottom: 4
+    }
+  }, React.createElement("button", {
+    className: tipo === "entrada" ? "on" : "",
+    onClick: () => cambiar("entrada")
+  }, "Entrada (+)"), React.createElement("button", {
+    className: tipo === "salida" ? "on" : "",
+    onClick: () => cambiar("salida")
+  }, "Salida (−)")), React.createElement("label", null, "Concepto"), React.createElement("select", {
+    value: concepto,
+    onChange: e => setConcepto(e.target.value)
+  }, conceptos.map(c => React.createElement("option", {
+    key: c
+  }, c))), React.createElement("label", null, "Producto"), React.createElement("select", {
+    value: cod,
+    onChange: e => {
+      setCod(e.target.value);
+      setCant(1);
+    }
+  }, React.createElement("option", {
+    value: ""
+  }, "Elige..."), products.map(p => React.createElement("option", {
+    key: p.cod,
+    value: p.cod
+  }, p.nom, " (", p.stock, " und)"))), prod && React.createElement(React.Fragment, null, React.createElement("label", null, "Cantidad"), React.createElement("div", {
+    className: "stepper"
+  }, React.createElement("button", {
+    onClick: () => setCant(Math.max(1, cant - 1))
+  }, "−"), React.createElement("input", {
+    type: "number",
+    value: cant,
+    onChange: e => setCant(Math.max(1, +e.target.value || 1))
+  }), React.createElement("button", {
+    onClick: () => setCant(cant + 1)
+  }, "+")), React.createElement("label", null, "Punto"), React.createElement("select", {
+    value: punto,
+    onChange: e => setPunto(e.target.value)
+  }, points.map(p => React.createElement("option", {
+    key: p
+  }, p))), tipo === "entrada" && concepto === "Compra" && React.createElement(React.Fragment, null, React.createElement("label", null, "Proveedor"), React.createElement("select", {
+    value: prov,
+    onChange: e => setProv(e.target.value)
+  }, React.createElement("option", {
+    value: ""
+  }, "Sin asignar"), suppliers.map(s => React.createElement("option", {
+    key: s.nombre
+  }, s.nombre)))), React.createElement("label", null, "Nota (opcional)"), React.createElement("input", {
+    value: nota,
+    onChange: e => setNota(e.target.value),
+    placeholder: "Comentario"
+  }), React.createElement("div", {
+    className: "meta",
+    style: {
+      marginTop: 10
+    }
+  }, "Nuevo stock de ", prod.nom, ": ", React.createElement("b", null, Math.max(0, prod.stock + (tipo === "entrada" ? cant : -cant))), " und")), React.createElement("button", {
+    className: "btn",
+    disabled: !puede,
+    onClick: registrar
+  }, React.createElement(Check, {
+    size: 18
+  }), " Registrar ", tipo), prod && tipo === "salida" && cant > prod.stock && React.createElement("div", {
+    className: "meta",
+    style: {
+      color: "var(--red)",
+      marginTop: 8
+    }
+  }, "No hay stock suficiente.")), React.createElement("div", {
+    className: "eb",
+    style: {
+      marginTop: 8
+    }
+  }, "Últimos movimientos"), React.createElement("div", {
+    className: "card"
+  }, movs.length === 0 ? React.createElement("div", {
+    className: "empty"
+  }, "Sin movimientos") : movs.slice(0, 12).map(m => React.createElement("div", {
+    className: "mv",
+    key: m.id
+  }, React.createElement("span", {
+    className: "dot " + (m.tipo === "entrada" ? "din" : "dout")
+  }, m.tipo === "entrada" ? "+" : "−"), React.createElement("div", {
+    style: {
+      flex: 1
+    }
+  }, React.createElement("div", {
+    className: "nm"
+  }, m.nom), React.createElement("div", {
+    className: "meta"
+  }, m.fecha, " · ", m.concepto, m.punto ? " · " + m.punto : "", m.nota ? " · " + m.nota : "")), React.createElement("b", {
+    style: {
+      color: m.tipo === "entrada" ? "var(--pri)" : "var(--red)"
+    }
+  }, m.tipo === "entrada" ? "+" : "−", m.cant)))));
+}
+function CartEditor({
+  productos,
+  cart,
+  setCart,
+  precioKey
+}) {
+  const [selCod, setSelCod] = useState("");
+  const add = () => {
+    if (!selCod) return;
+    const p = productos.find(x => x.cod === selCod);
+    if (!p) return;
+    setCart(c => c.find(i => i.cod === selCod) ? c.map(i => i.cod === selCod ? {
+      ...i,
+      cant: i.cant + 1
+    } : i) : [...c, {
+      cod: p.cod,
+      nom: p.nom,
+      cant: 1,
+      [precioKey]: p[precioKey]
+    }]);
+    setSelCod("");
+  };
+  const setLine = (cod, k, v) => setCart(c => c.map(i => i.cod === cod ? {
+    ...i,
+    [k]: v
+  } : i));
+  const del = cod => setCart(c => c.filter(i => i.cod !== cod));
+  return React.createElement(React.Fragment, null, React.createElement("label", null, "Agregar producto"), React.createElement("div", {
+    style: {
+      display: "flex",
+      gap: 8
+    }
+  }, React.createElement("select", {
+    value: selCod,
+    onChange: e => setSelCod(e.target.value)
+  }, React.createElement("option", {
+    value: ""
+  }, "Elige..."), productos.map(p => React.createElement("option", {
+    key: p.cod,
+    value: p.cod
+  }, p.nom, " (", p.stock, ")"))), React.createElement("button", {
+    className: "btn",
+    style: {
+      width: "auto",
+      margin: 0,
+      padding: "0 16px"
+    },
+    onClick: add
+  }, React.createElement(Plus, {
+    size: 18
+  }))), cart.length > 0 && React.createElement("div", {
+    style: {
+      marginTop: 14
+    }
+  }, cart.map(i => React.createElement("div", {
+    className: "cart",
+    key: i.cod
+  }, React.createElement("button", {
+    className: "x",
+    onClick: () => del(i.cod)
+  }, "×"), React.createElement("div", {
+    style: {
+      flex: 1,
+      minWidth: 0
+    }
+  }, React.createElement("div", {
+    className: "nm",
+    style: {
+      fontSize: 13,
+      whiteSpace: "nowrap",
+      overflow: "hidden",
+      textOverflow: "ellipsis"
+    }
+  }, i.nom), React.createElement("div", {
+    className: "meta"
+  }, i.cant, " x ", money(i[precioKey]), " = ", money(i.cant * i[precioKey]))), React.createElement("div", {
+    className: "stepper"
+  }, React.createElement("button", {
+    onClick: () => setLine(i.cod, "cant", Math.max(1, i.cant - 1))
+  }, "−"), React.createElement("button", {
+    onClick: () => setLine(i.cod, "cant", i.cant + 1)
+  }, "+")), React.createElement("input", {
+    className: "mini",
+    type: "number",
+    value: i[precioKey],
+    onChange: e => setLine(i.cod, precioKey, +e.target.value)
+  })))));
+}
+function Ventas({
+  products,
+  setProducts,
+  facturas,
+  setFacturas,
+  abonos,
+  setAbonos,
+  points,
+  clients,
+  logMov,
+  flash,
+  showDoc
+}) {
+  const [tipo, setTipo] = useState("Menudeo");
+  const [punto, setPunto] = useState(points[0] || "");
+  const [cliente, setCliente] = useState("Mostrador");
+  const [cart, setCart] = useState([]);
+  const [descuento, setDescuento] = useState(0);
+  const [pago, setPago] = useState("Completo");
+  const [abono, setAbono] = useState(0);
+  const activos = products.filter(p => p.activo);
+  const stockDe = cod => (products.find(p => p.cod === cod) || {}).stock || 0;
+  const bruto = cart.reduce((a, i) => a + i.cant * i.precio, 0);
+  const total = Math.max(0, bruto - descuento);
+  const pagado = pago === "Completo" ? total : Math.min(+abono || 0, total);
+  const saldo = total - pagado;
+  const sinStock = cart.some(i => i.cant > stockDe(i.cod));
+  const puede = cart.length > 0 && !sinStock;
+  const facturar = () => {
+    const n = facturas.reduce((m, f) => Math.max(m, f.n || 0), 0) + 1;
+    const clienteData = clients.find(c => c.nombre === cliente) || null;
+    setProducts(ps => ps.map(p => {
+      const it = cart.find(i => i.cod === p.cod);
+      return it ? {
+        ...p,
+        stock: p.stock - it.cant
+      } : p;
+    }));
+    cart.forEach(it => logMov({
+      tipo: "salida",
+      concepto: "Venta",
+      cod: it.cod,
+      nom: it.nom,
+      cant: it.cant,
+      punto,
+      nota: pad("F", n) + (cliente !== "Mostrador" ? " · " + cliente : "")
+    }));
+    setFacturas([{
+      id: uid(),
+      n,
+      fecha: hoy(),
+      punto,
+      tipo,
+      cliente,
+      clienteData,
+      items: cart,
+      bruto,
+      descuento: +descuento || 0,
+      total,
+      pagado,
+      saldo
+    }, ...facturas]);
+    if (pagado > 0) setAbonos(a => [{
+      id: uid(),
+      fecha: hoy(),
+      facturaId: n,
+      cliente,
+      monto: pagado
+    }, ...a]);
+    flash(saldo > 0 ? "Factura con saldo pendiente" : "Venta registrada y pagada");
+    setCart([]);
+    setDescuento(0);
+    setAbono(0);
+    setPago("Completo");
+  };
+  return React.createElement("div", {
+    className: "wrap"
+  }, React.createElement("div", {
+    className: "eb"
+  }, "Ventas"), React.createElement("h2", null, "Nueva venta / factura"), React.createElement("div", {
+    className: "card"
+  }, React.createElement("div", {
+    className: "seg",
+    style: {
+      marginBottom: 8
+    }
+  }, React.createElement("button", {
+    className: tipo === "Menudeo" ? "on" : "",
+    onClick: () => setTipo("Menudeo")
+  }, "Menudeo"), React.createElement("button", {
+    className: tipo === "Minorista" ? "on" : "",
+    onClick: () => setTipo("Minorista")
+  }, "Minorista")), React.createElement("div", {
+    style: {
+      display: "flex",
+      gap: 10
+    }
+  }, React.createElement("div", {
+    style: {
+      flex: 1
+    }
+  }, React.createElement("label", null, "Punto"), React.createElement("select", {
+    value: punto,
+    onChange: e => setPunto(e.target.value)
+  }, points.map(p => React.createElement("option", {
+    key: p
+  }, p)))), React.createElement("div", {
+    style: {
+      flex: 1
+    }
+  }, React.createElement("label", null, "Cliente"), React.createElement("select", {
+    value: cliente,
+    onChange: e => setCliente(e.target.value)
+  }, React.createElement("option", null, "Mostrador"), clients.map(c => React.createElement("option", {
+    key: c.nombre
+  }, c.nombre))))), React.createElement(CartEditor, {
+    productos: activos,
+    cart: cart,
+    setCart: setCart,
+    precioKey: "precio"
+  })), cart.length > 0 && React.createElement("div", {
+    className: "card"
+  }, React.createElement("label", {
+    style: {
+      marginTop: 0
+    }
+  }, "Descuento (total factura)"), React.createElement("input", {
+    type: "number",
+    value: descuento,
+    onChange: e => setDescuento(+e.target.value),
+    placeholder: "0"
+  }), React.createElement("div", {
+    className: "seg",
+    style: {
+      marginTop: 12
+    }
+  }, React.createElement("button", {
+    className: pago === "Completo" ? "on" : "",
+    onClick: () => setPago("Completo")
+  }, "Pago completo"), React.createElement("button", {
+    className: pago === "Abono" ? "on" : "",
+    onClick: () => setPago("Abono")
+  }, "Abono")), pago === "Abono" && React.createElement(React.Fragment, null, React.createElement("label", null, "Monto abonado"), React.createElement("input", {
+    type: "number",
+    value: abono,
+    onChange: e => setAbono(+e.target.value),
+    placeholder: "0"
+  })), React.createElement("div", {
+    className: "card",
+    style: {
+      marginTop: 14,
+      background: "#E6F6EF",
+      border: "none"
+    }
+  }, React.createElement("div", {
+    className: "row",
+    style: {
+      borderTop: "none",
+      padding: "4px 0"
+    }
+  }, React.createElement("span", null, "Bruto"), React.createElement("span", null, money(bruto))), React.createElement("div", {
+    className: "row",
+    style: {
+      padding: "4px 0",
+      borderColor: "#CFE9DD"
+    }
+  }, React.createElement("span", null, "Descuento"), React.createElement("span", null, "− ", money(descuento))), React.createElement("div", {
+    className: "row",
+    style: {
+      padding: "4px 0",
+      borderColor: "#CFE9DD"
+    }
+  }, React.createElement("span", null, React.createElement("b", null, "Total")), React.createElement("b", {
+    style: {
+      color: "var(--pri)",
+      fontSize: 17
+    }
+  }, money(total))), saldo > 0 && React.createElement("div", {
+    className: "row",
+    style: {
+      padding: "4px 0",
+      borderColor: "#CFE9DD"
+    }
+  }, React.createElement("span", null, "Pendiente por cobrar"), React.createElement("b", {
+    style: {
+      color: "var(--amber)"
+    }
+  }, money(saldo)))), React.createElement("button", {
+    className: "btn",
+    disabled: !puede,
+    onClick: facturar
+  }, React.createElement(FileText, {
+    size: 18
+  }), " Facturar"), sinStock && React.createElement("div", {
+    className: "meta",
+    style: {
+      color: "var(--red)",
+      marginTop: 8
+    }
+  }, "Un producto supera el stock disponible.")), React.createElement("div", {
+    className: "eb",
+    style: {
+      marginTop: 8
+    }
+  }, "Últimas facturas"), React.createElement("div", {
+    className: "card"
+  }, facturas.length === 0 ? React.createElement("div", {
+    className: "empty"
+  }, "Sin facturas todavía") : facturas.slice(0, 8).map(f => React.createElement("div", {
+    className: "row",
+    key: f.id
+  }, React.createElement("div", null, React.createElement("div", {
+    className: "nm"
+  }, pad("F", f.n), " · ", f.cliente), React.createElement("div", {
+    className: "meta"
+  }, f.fecha, " · ", f.punto, " · ", f.tipo, " · ", f.items.length, " ítem(s)"), React.createElement("button", {
+    className: "link",
+    style: {
+      marginTop: 4
+    },
+    onClick: () => showDoc(fToDoc(f))
+  }, React.createElement(FileText, {
+    size: 13
+  }), " Ver documento")), React.createElement("div", {
+    style: {
+      textAlign: "right"
+    }
+  }, React.createElement("b", {
+    style: {
+      color: "var(--pri)"
+    }
+  }, money(f.total)), React.createElement("div", null, React.createElement("span", {
+    className: "tag " + (f.saldo > 0 ? "amber" : "ok")
+  }, f.saldo > 0 ? "Debe " + money(f.saldo) : "Pagada")))))));
+}
+function Compras({
+  products,
+  setProducts,
+  compras,
+  setCompras,
+  deudas,
+  setDeudas,
+  points,
+  suppliers,
+  logMov,
+  flash,
+  showDoc
+}) {
+  const [punto, setPunto] = useState(points[0] || "");
+  const [prov, setProv] = useState(suppliers[0] ? suppliers[0].nombre : "");
+  const [cart, setCart] = useState([]);
+  const [pago, setPago] = useState("Contado");
+  const total = cart.reduce((a, i) => a + i.cant * i.costo, 0);
+  const puede = cart.length > 0 && prov;
+  const comprar = () => {
+    const n = compras.reduce((m, c) => Math.max(m, c.n || 0), 0) + 1;
+    const proveedorData = suppliers.find(s => s.nombre === prov) || null;
+    setProducts(ps => ps.map(p => {
+      const it = cart.find(i => i.cod === p.cod);
+      return it ? {
+        ...p,
+        stock: p.stock + it.cant,
+        costo: it.costo || p.costo
+      } : p;
+    }));
+    cart.forEach(it => logMov({
+      tipo: "entrada",
+      concepto: "Compra",
+      cod: it.cod,
+      nom: it.nom,
+      cant: it.cant,
+      punto,
+      nota: pad("C", n) + " · " + prov
+    }));
+    setCompras([{
+      id: uid(),
+      n,
+      fecha: hoy(),
+      punto,
+      proveedor: prov,
+      proveedorData,
+      items: cart,
+      total,
+      pago
+    }, ...compras]);
+    if (pago === "Crédito") setDeudas(ds => [{
+      id: uid(),
+      fecha: hoy(),
+      acreedor: prov,
+      concepto: "Compra " + pad("C", n),
+      monto: total,
+      pagado: 0,
+      saldo: total
+    }, ...ds]);
+    flash("Compra registrada, stock actualizado");
+    setCart([]);
+    setPago("Contado");
+  };
+  return React.createElement("div", {
+    className: "wrap"
+  }, React.createElement("div", {
+    className: "eb"
+  }, "Compras"), React.createElement("h2", null, "Nueva compra"), React.createElement("p", {
+    className: "lead"
+  }, "Registra lo que compras a tus proveedores. Suma al inventario."), React.createElement("div", {
+    className: "card"
+  }, React.createElement("div", {
+    style: {
+      display: "flex",
+      gap: 10
+    }
+  }, React.createElement("div", {
+    style: {
+      flex: 1
+    }
+  }, React.createElement("label", null, "Proveedor"), React.createElement("select", {
+    value: prov,
+    onChange: e => setProv(e.target.value)
+  }, suppliers.length === 0 && React.createElement("option", {
+    value: ""
+  }, "Crea un proveedor"), suppliers.map(s => React.createElement("option", {
+    key: s.nombre
+  }, s.nombre)))), React.createElement("div", {
+    style: {
+      flex: 1
+    }
+  }, React.createElement("label", null, "Punto"), React.createElement("select", {
+    value: punto,
+    onChange: e => setPunto(e.target.value)
+  }, points.map(p => React.createElement("option", {
+    key: p
+  }, p))))), React.createElement(CartEditor, {
+    productos: products.filter(p => p.activo),
+    cart: cart,
+    setCart: setCart,
+    precioKey: "costo"
+  })), cart.length > 0 && React.createElement("div", {
+    className: "card"
+  }, React.createElement("div", {
+    className: "seg"
+  }, React.createElement("button", {
+    className: pago === "Contado" ? "on" : "",
+    onClick: () => setPago("Contado")
+  }, "Contado"), React.createElement("button", {
+    className: pago === "Crédito" ? "on" : "",
+    onClick: () => setPago("Crédito")
+  }, "Crédito")), React.createElement("div", {
+    className: "card",
+    style: {
+      marginTop: 14,
+      background: "#E6F6EF",
+      border: "none"
+    }
+  }, React.createElement("div", {
+    className: "row",
+    style: {
+      borderTop: "none"
+    }
+  }, React.createElement("span", null, React.createElement("b", null, "Total compra")), React.createElement("b", {
+    style: {
+      color: "var(--pri)",
+      fontSize: 17
+    }
+  }, money(total))), pago === "Crédito" && React.createElement("div", {
+    className: "meta"
+  }, "Se registrará como deuda por pagar a ", prov, ".")), React.createElement("button", {
+    className: "btn",
+    disabled: !puede,
+    onClick: comprar
+  }, React.createElement(ShoppingBag, {
+    size: 18
+  }), " Registrar compra")), React.createElement("div", {
+    className: "eb",
+    style: {
+      marginTop: 8
+    }
+  }, "Últimas compras"), React.createElement("div", {
+    className: "card"
+  }, compras.length === 0 ? React.createElement("div", {
+    className: "empty"
+  }, "Sin compras todavía") : compras.slice(0, 8).map(c => React.createElement("div", {
+    className: "row",
+    key: c.id
+  }, React.createElement("div", null, React.createElement("div", {
+    className: "nm"
+  }, pad("C", c.n), " · ", c.proveedor), React.createElement("div", {
+    className: "meta"
+  }, c.fecha, " · ", c.punto, " · ", c.pago), React.createElement("button", {
+    className: "link",
+    style: {
+      marginTop: 4
+    },
+    onClick: () => showDoc(cToDoc(c))
+  }, React.createElement(FileText, {
+    size: 13
+  }), " Ver documento")), React.createElement("b", {
+    style: {
+      color: "var(--pri)"
+    }
+  }, money(c.total))))));
+}
+function Devoluciones({
+  products,
+  setProducts,
+  notas,
+  setNotas,
+  points,
+  clients,
+  suppliers,
+  logMov,
+  flash,
+  showDoc
+}) {
+  const [rol, setRol] = useState("Cliente");
+  const [punto, setPunto] = useState(points[0] || "");
+  const [party, setParty] = useState("");
+  const [cart, setCart] = useState([]);
+  const [motivo, setMotivo] = useState("");
+  const lista = rol === "Cliente" ? clients : suppliers;
+  const total = cart.reduce((a, i) => a + i.cant * i.precio, 0);
+  const puede = cart.length > 0 && party;
+  const registrar = () => {
+    const n = notas.reduce((m, x) => Math.max(m, x.n || 0), 0) + 1;
+    const partyData = lista.find(x => x.nombre === party) || null;
+    const esCliente = rol === "Cliente";
+    const tipoNota = esCliente ? "Devolución de cliente" : "Devolución a proveedor";
+    setProducts(ps => ps.map(p => {
+      const it = cart.find(i => i.cod === p.cod);
+      if (!it) return p;
+      return {
+        ...p,
+        stock: esCliente ? p.stock + it.cant : Math.max(0, p.stock - it.cant)
+      };
+    }));
+    cart.forEach(it => logMov({
+      tipo: esCliente ? "entrada" : "salida",
+      concepto: tipoNota,
+      cod: it.cod,
+      nom: it.nom,
+      cant: it.cant,
+      punto,
+      nota: pad("N", n) + " · " + party
+    }));
+    setNotas([{
+      id: uid(),
+      n,
+      fecha: hoy(),
+      tipo: tipoNota,
+      rol,
+      punto,
+      party,
+      partyData,
+      items: cart,
+      total,
+      motivo
+    }, ...notas]);
+    flash("Nota de devolución registrada");
+    setCart([]);
+    setMotivo("");
+  };
+  return React.createElement("div", {
+    className: "wrap"
+  }, React.createElement("div", {
+    className: "eb"
+  }, "Devoluciones"), React.createElement("h2", null, "Nota de devolución"), React.createElement("p", {
+    className: "lead"
+  }, "Devoluciones de clientes (entran al stock) o a proveedores (salen del stock)."), React.createElement("div", {
+    className: "card"
+  }, React.createElement("div", {
+    className: "seg",
+    style: {
+      marginBottom: 8
+    }
+  }, React.createElement("button", {
+    className: rol === "Cliente" ? "on" : "",
+    onClick: () => {
+      setRol("Cliente");
+      setParty("");
+    }
+  }, "De cliente"), React.createElement("button", {
+    className: rol === "Proveedor" ? "on" : "",
+    onClick: () => {
+      setRol("Proveedor");
+      setParty("");
+    }
+  }, "A proveedor")), React.createElement("div", {
+    style: {
+      display: "flex",
+      gap: 10
+    }
+  }, React.createElement("div", {
+    style: {
+      flex: 1
+    }
+  }, React.createElement("label", null, rol), React.createElement("select", {
+    value: party,
+    onChange: e => setParty(e.target.value)
+  }, React.createElement("option", {
+    value: ""
+  }, "Elige..."), lista.map(x => React.createElement("option", {
+    key: x.nombre
+  }, x.nombre)))), React.createElement("div", {
+    style: {
+      flex: 1
+    }
+  }, React.createElement("label", null, "Punto"), React.createElement("select", {
+    value: punto,
+    onChange: e => setPunto(e.target.value)
+  }, points.map(p => React.createElement("option", {
+    key: p
+  }, p))))), React.createElement(CartEditor, {
+    productos: products.filter(p => p.activo),
+    cart: cart,
+    setCart: setCart,
+    precioKey: "precio"
+  }), React.createElement("label", null, "Motivo"), React.createElement("input", {
+    value: motivo,
+    onChange: e => setMotivo(e.target.value),
+    placeholder: "Ej: producto en mal estado"
+  }), React.createElement("div", {
+    className: "card",
+    style: {
+      marginTop: 14,
+      background: "#E6F6EF",
+      border: "none"
+    }
+  }, React.createElement("div", {
+    className: "row",
+    style: {
+      borderTop: "none"
+    }
+  }, React.createElement("span", null, React.createElement("b", null, "Total devolución")), React.createElement("b", {
+    style: {
+      color: "var(--pri)"
+    }
+  }, money(total)))), React.createElement("button", {
+    className: "btn",
+    disabled: !puede,
+    onClick: registrar
+  }, React.createElement(Undo2, {
+    size: 18
+  }), " Registrar devolución")), React.createElement("div", {
+    className: "eb",
+    style: {
+      marginTop: 8
+    }
+  }, "Últimas notas"), React.createElement("div", {
+    className: "card"
+  }, notas.length === 0 ? React.createElement("div", {
+    className: "empty"
+  }, "Sin devoluciones") : notas.slice(0, 8).map(x => React.createElement("div", {
+    className: "row",
+    key: x.id
+  }, React.createElement("div", null, React.createElement("div", {
+    className: "nm"
+  }, pad("N", x.n), " · ", x.party), React.createElement("div", {
+    className: "meta"
+  }, x.fecha, " · ", x.tipo), React.createElement("button", {
+    className: "link",
+    style: {
+      marginTop: 4
+    },
+    onClick: () => showDoc(nToDoc(x))
+  }, React.createElement(FileText, {
+    size: 13
+  }), " Ver documento")), React.createElement("b", null, money(x.total))))));
+}
+function Mas({
+  go
+}) {
+  return React.createElement("div", {
+    className: "wrap"
+  }, React.createElement("div", {
+    className: "eb"
+  }, "Más"), React.createElement("h2", null, "Todo el negocio"), React.createElement("div", {
+    className: "menu"
+  }, React.createElement("button", {
+    onClick: () => go("compras")
+  }, React.createElement("span", {
+    className: "ic"
+  }, React.createElement(ShoppingBag, {
+    size: 20
+  })), " Compras a proveedores"), React.createElement("button", {
+    onClick: () => go("devoluciones")
+  }, React.createElement("span", {
+    className: "ic"
+  }, React.createElement(Undo2, {
+    size: 20
+  })), " Devoluciones y notas"), React.createElement("button", {
+    onClick: () => go("gastos")
+  }, React.createElement("span", {
+    className: "ic"
+  }, React.createElement(Wallet, {
+    size: 20
+  })), " Gastos y egresos"), React.createElement("button", {
+    onClick: () => go("tesoreria")
+  }, React.createElement("span", {
+    className: "ic"
+  }, React.createElement(Coins, {
+    size: 20
+  })), " Tesorería (cobrar, pagar, caja)"), React.createElement("button", {
+    onClick: () => go("informes")
+  }, React.createElement("span", {
+    className: "ic"
+  }, React.createElement(BarChart3, {
+    size: 20
+  })), " Informes"), React.createElement("button", {
+    onClick: () => go("maestros")
+  }, React.createElement("span", {
+    className: "ic"
+  }, React.createElement(Settings, {
+    size: 20
+  })), " Maestros y ajustes")));
+}
+function Gastos({
+  expenses,
+  setExpenses,
+  points,
+  flash
+}) {
+  const [punto, setPunto] = useState(points[0] || "");
+  const [concepto, setConcepto] = useState(EXP_CONCEPTS[0]);
+  const [monto, setMonto] = useState("");
+  const registrar = () => {
+    setExpenses([{
+      id: uid(),
+      fecha: hoy(),
+      punto,
+      concepto,
+      monto: +monto
+    }, ...expenses]);
+    flash("Gasto registrado");
+    setMonto("");
+  };
+  return React.createElement("div", {
+    className: "wrap"
+  }, React.createElement("div", {
+    className: "eb"
+  }, "Gastos"), React.createElement("h2", null, "Registrar gasto"), React.createElement("p", {
+    className: "lead"
+  }, "Cada gasto queda asignado a su punto."), React.createElement("div", {
+    className: "card"
+  }, React.createElement("label", null, "Punto"), React.createElement("select", {
+    value: punto,
+    onChange: e => setPunto(e.target.value)
+  }, points.map(p => React.createElement("option", {
+    key: p
+  }, p))), React.createElement("label", null, "Concepto"), React.createElement("select", {
+    value: concepto,
+    onChange: e => setConcepto(e.target.value)
+  }, EXP_CONCEPTS.map(c => React.createElement("option", {
+    key: c
+  }, c))), React.createElement("label", null, "Monto"), React.createElement("input", {
+    type: "number",
+    value: monto,
+    onChange: e => setMonto(e.target.value),
+    placeholder: "0"
+  }), React.createElement("button", {
+    className: "btn",
+    disabled: !(+monto > 0),
+    onClick: registrar
+  }, React.createElement(Check, {
+    size: 18
+  }), " Registrar gasto")), React.createElement("div", {
+    className: "eb",
+    style: {
+      marginTop: 8
+    }
+  }, "Últimos gastos"), React.createElement("div", {
+    className: "card"
+  }, expenses.length === 0 ? React.createElement("div", {
+    className: "empty"
+  }, "Sin gastos") : expenses.slice(0, 8).map(e => React.createElement("div", {
+    className: "row",
+    key: e.id
+  }, React.createElement("div", null, React.createElement("div", {
+    className: "nm"
+  }, e.concepto), React.createElement("div", {
+    className: "meta"
+  }, e.fecha, " · ", e.punto)), React.createElement("b", {
+    style: {
+      color: "var(--red)"
+    }
+  }, money(e.monto))))));
+}
+function Tesoreria({
+  facturas,
+  setFacturas,
+  abonos,
+  setAbonos,
+  deudas,
+  setDeudas,
+  suppliers,
+  caja,
+  flash
+}) {
+  const [tab, setTab] = useState("cobrar");
+  const [abId, setAbId] = useState(null);
+  const [abVal, setAbVal] = useState("");
+  const [pgId, setPgId] = useState(null);
+  const [pgVal, setPgVal] = useState("");
+  const [nd, setNd] = useState({
+    acreedor: "",
+    concepto: "",
+    monto: ""
+  });
+  const cobrar = facturas.filter(f => f.saldo > 0);
+  const pagar = deudas.filter(x => x.saldo > 0);
+  const totalCobrar = cobrar.reduce((a, f) => a + f.saldo, 0);
+  const totalPagar = pagar.reduce((a, x) => a + x.saldo, 0);
+  const recibido = facturas.reduce((a, f) => a + f.pagado, 0);
+  const abonar = f => {
+    const v = Math.min(+abVal || 0, f.saldo);
+    if (v <= 0) return;
+    setFacturas(fs => fs.map(x => x.id === f.id ? {
+      ...x,
+      pagado: x.pagado + v,
+      saldo: x.saldo - v
+    } : x));
+    setAbonos(a => [{
+      id: uid(),
+      fecha: hoy(),
+      facturaId: f.n,
+      cliente: f.cliente,
+      monto: v
+    }, ...a]);
+    setAbId(null);
+    setAbVal("");
+    flash("Abono registrado");
+  };
+  const pagarDeuda = x => {
+    const v = Math.min(+pgVal || 0, x.saldo);
+    if (v <= 0) return;
+    setDeudas(ds => ds.map(y => y.id === x.id ? {
+      ...y,
+      pagado: y.pagado + v,
+      saldo: y.saldo - v
+    } : y));
+    setPgId(null);
+    setPgVal("");
+    flash("Pago registrado");
+  };
+  const addDeuda = () => {
+    if (!nd.acreedor.trim() || !(+nd.monto > 0)) return;
+    setDeudas([{
+      id: uid(),
+      fecha: hoy(),
+      acreedor: nd.acreedor.trim(),
+      concepto: nd.concepto.trim() || "Deuda",
+      monto: +nd.monto,
+      pagado: 0,
+      saldo: +nd.monto
+    }, ...deudas]);
+    setNd({
+      acreedor: "",
+      concepto: "",
+      monto: ""
+    });
+    flash("Deuda registrada");
+  };
+  return React.createElement("div", {
+    className: "wrap"
+  }, React.createElement("div", {
+    className: "eb"
+  }, "Tesorería"), React.createElement("h2", null, "Cobrar, pagar y caja"), React.createElement("div", {
+    className: "chips"
+  }, [["cobrar", "Por cobrar"], ["pagar", "Por pagar"], ["caja", "Caja"]].map(([k, t]) => React.createElement("div", {
+    key: k,
+    className: "chip" + (tab === k ? " on" : ""),
+    onClick: () => setTab(k)
+  }, t))), tab === "cobrar" && React.createElement(React.Fragment, null, React.createElement("div", {
+    className: "kpi a",
+    style: {
+      marginBottom: 12
+    }
+  }, React.createElement("div", {
+    className: "l"
+  }, "Total por cobrar"), React.createElement("div", {
+    className: "v"
+  }, money(totalCobrar))), React.createElement("div", {
+    className: "card"
+  }, cobrar.length === 0 ? React.createElement("div", {
+    className: "empty"
+  }, "Nada por cobrar") : cobrar.map(f => React.createElement("div", {
+    key: f.id,
+    style: {
+      borderTop: "1px solid var(--line)",
+      paddingTop: 10,
+      marginTop: 10
+    }
+  }, React.createElement("div", {
+    className: "row",
+    style: {
+      borderTop: "none",
+      padding: 0
+    }
+  }, React.createElement("div", null, React.createElement("div", {
+    className: "nm"
+  }, f.cliente, " · ", pad("F", f.n)), React.createElement("div", {
+    className: "meta"
+  }, "Total ", money(f.total), " · pagado ", money(f.pagado))), React.createElement("b", {
+    style: {
+      color: "var(--amber)"
+    }
+  }, money(f.saldo))), abId === f.id ? React.createElement("div", {
+    style: {
+      display: "flex",
+      gap: 8,
+      marginTop: 8
+    }
+  }, React.createElement("input", {
+    type: "number",
+    value: abVal,
+    onChange: e => setAbVal(e.target.value),
+    placeholder: "Monto del abono"
+  }), React.createElement("button", {
+    className: "btn",
+    style: {
+      width: "auto",
+      margin: 0,
+      padding: "0 16px"
+    },
+    onClick: () => abonar(f)
+  }, "OK")) : React.createElement("button", {
+    className: "btn g",
+    style: {
+      marginTop: 8,
+      padding: 10
+    },
+    onClick: () => {
+      setAbId(f.id);
+      setAbVal("");
+    }
+  }, React.createElement(HandCoins, {
+    size: 15
+  }), " Registrar abono"))))), tab === "pagar" && React.createElement(React.Fragment, null, React.createElement("div", {
+    className: "kpi r",
+    style: {
+      marginBottom: 12
+    }
+  }, React.createElement("div", {
+    className: "l"
+  }, "Total por pagar (deudas)"), React.createElement("div", {
+    className: "v"
+  }, money(totalPagar))), React.createElement("div", {
+    className: "card"
+  }, React.createElement("h3", null, "Nueva deuda o pasivo"), React.createElement("label", null, "Acreedor"), React.createElement("input", {
+    list: "provs",
+    value: nd.acreedor,
+    onChange: e => setNd({
+      ...nd,
+      acreedor: e.target.value
+    }),
+    placeholder: "A quién le debes"
+  }), React.createElement("datalist", {
+    id: "provs"
+  }, suppliers.map(s => React.createElement("option", {
+    key: s.nombre,
+    value: s.nombre
+  }))), React.createElement("label", null, "Concepto"), React.createElement("input", {
+    value: nd.concepto,
+    onChange: e => setNd({
+      ...nd,
+      concepto: e.target.value
+    }),
+    placeholder: "Ej: compra de mercancía"
+  }), React.createElement("label", null, "Monto"), React.createElement("input", {
+    type: "number",
+    value: nd.monto,
+    onChange: e => setNd({
+      ...nd,
+      monto: e.target.value
+    }),
+    placeholder: "0"
+  }), React.createElement("button", {
+    className: "btn",
+    disabled: !(nd.acreedor.trim() && +nd.monto > 0),
+    onClick: addDeuda
+  }, React.createElement(Plus, {
+    size: 18
+  }), " Agregar deuda")), React.createElement("div", {
+    className: "card"
+  }, pagar.length === 0 ? React.createElement("div", {
+    className: "empty"
+  }, "Sin deudas pendientes") : pagar.map(x => React.createElement("div", {
+    key: x.id,
+    style: {
+      borderTop: "1px solid var(--line)",
+      paddingTop: 10,
+      marginTop: 10
+    }
+  }, React.createElement("div", {
+    className: "row",
+    style: {
+      borderTop: "none",
+      padding: 0
+    }
+  }, React.createElement("div", null, React.createElement("div", {
+    className: "nm"
+  }, x.acreedor), React.createElement("div", {
+    className: "meta"
+  }, x.concepto, " · pagado ", money(x.pagado))), React.createElement("b", {
+    style: {
+      color: "var(--red)"
+    }
+  }, money(x.saldo))), pgId === x.id ? React.createElement("div", {
+    style: {
+      display: "flex",
+      gap: 8,
+      marginTop: 8
+    }
+  }, React.createElement("input", {
+    type: "number",
+    value: pgVal,
+    onChange: e => setPgVal(e.target.value),
+    placeholder: "Monto a pagar"
+  }), React.createElement("button", {
+    className: "btn",
+    style: {
+      width: "auto",
+      margin: 0,
+      padding: "0 16px"
+    },
+    onClick: () => pagarDeuda(x)
+  }, "OK")) : React.createElement("button", {
+    className: "btn g",
+    style: {
+      marginTop: 8,
+      padding: 10
+    },
+    onClick: () => {
+      setPgId(x.id);
+      setPgVal("");
+    }
+  }, React.createElement(HandCoins, {
+    size: 15
+  }), " Registrar pago"))))), tab === "caja" && React.createElement("div", {
+    className: "card"
+  }, React.createElement("h3", null, React.createElement(Coins, {
+    size: 17,
+    color: "#0E9E74"
+  }), " Estado de caja"), React.createElement("div", {
+    className: "row"
+  }, React.createElement("span", null, "Recibido de ventas"), React.createElement("b", {
+    style: {
+      color: "var(--pri)"
+    }
+  }, money(recibido))), React.createElement("div", {
+    className: "row"
+  }, React.createElement("span", null, "Salidas (gastos, compras de contado y pagos)"), React.createElement("b", {
+    style: {
+      color: "var(--red)"
+    }
+  }, "− ", money(recibido - caja))), React.createElement("div", {
+    className: "row"
+  }, React.createElement("span", null, React.createElement("b", null, "Saldo en caja")), React.createElement("b", {
+    style: {
+      fontSize: 18,
+      color: caja >= 0 ? "var(--pri)" : "var(--red)"
+    }
+  }, money(caja)))));
+}
+function Informes({
+  products,
+  valorInv,
+  topVendidos,
+  points,
+  facturas,
+  compras,
+  notas,
+  abonos,
+  expenses,
+  deudas,
+  clients,
+  movs,
+  caja,
+  showDoc
+}) {
+  const [desde, setDesde] = useState(primerDiaMes());
+  const [hasta, setHasta] = useState(hoy());
+  const [cliente, setCliente] = useState("");
+  const [detalle, setDetalle] = useState("ventas");
+  const inR = f => (!desde || f >= desde) && (!hasta || f <= hasta);
+  const facR = facturas.filter(f => inR(f.fecha));
+  const comprasR = compras.filter(c => inR(c.fecha));
+  const gastosR = expenses.filter(e => inR(e.fecha));
+  const abonosR = abonos.filter(a => inR(a.fecha));
+  const entR = movs.filter(m => m.tipo === "entrada" && inR(m.fecha));
+  const salR = movs.filter(m => m.tipo === "salida" && inR(m.fecha));
+  const totalVentas = facR.reduce((a, f) => a + f.total, 0);
+  const totalAbonado = abonosR.reduce((a, x) => a + x.monto, 0);
+  const totalCompras = comprasR.reduce((a, c) => a + c.total, 0);
+  const totalGastos = gastosR.reduce((a, e) => a + e.monto, 0);
+  const porCobrar = facturas.reduce((a, f) => a + f.saldo, 0);
+  const porPagar = deudas.reduce((a, x) => a + x.saldo, 0);
+  const utilidad = totalVentas - totalGastos;
+  const uEnt = entR.reduce((a, m) => a + m.cant, 0);
+  const uSal = salR.reduce((a, m) => a + m.cant, 0);
+  const consPunto = (points || []).map(p => ({
+    p,
+    ventas: facR.filter(f => f.punto === p).reduce((a, f) => a + f.total, 0),
+    compras: comprasR.filter(c => c.punto === p).reduce((a, c) => a + c.total, 0),
+    gastos: gastosR.filter(e => e.punto === p).reduce((a, e) => a + e.monto, 0)
+  }));
+  const facCliente = facturas.filter(f => f.cliente === cliente);
+  const facturado = facCliente.filter(f => inR(f.fecha)).reduce((a, f) => a + f.total, 0);
+  const abonadoCli = abonos.filter(a => a.cliente === cliente && inR(a.fecha)).reduce((a, x) => a + x.monto, 0);
+  const debe = facCliente.reduce((a, f) => a + f.saldo, 0);
+  const docs = [...facR.map(f => ({
+    fecha: f.fecha,
+    o: fToDoc(f),
+    part: f.cliente,
+    tot: f.total
+  })), ...comprasR.map(c => ({
+    fecha: c.fecha,
+    o: cToDoc(c),
+    part: c.proveedor,
+    tot: c.total
+  })), ...notas.filter(x => inR(x.fecha)).map(x => ({
+    fecha: x.fecha,
+    o: nToDoc(x),
+    part: x.party,
+    tot: x.total
+  }))].sort((a, b) => b.fecha < a.fecha ? -1 : 1);
+  const maxV = Math.max(1, ...topVendidos.map(t => t.cant));
+  const rango = (dd, hh) => {
+    setDesde(dd);
+    setHasta(hh);
+  };
+  const inicioAno = () => {
+    const x = new Date();
+    return new Date(x.getFullYear(), 0, 1).toISOString().slice(0, 10);
+  };
+  return React.createElement("div", {
+    className: "wrap"
+  }, React.createElement("div", {
+    className: "eb"
+  }, "Informes"), React.createElement("h2", null, "Cómo va el negocio"), React.createElement("div", {
+    className: "card"
+  }, React.createElement("h3", null, React.createElement(BarChart3, {
+    size: 16,
+    color: "#0E9E74"
+  }), " Rango de fechas"), React.createElement("div", {
+    style: {
+      display: "flex",
+      gap: 10
+    }
+  }, React.createElement("div", {
+    style: {
+      flex: 1
+    }
+  }, React.createElement("label", null, "Desde"), React.createElement("input", {
+    type: "date",
+    value: desde,
+    onChange: e => setDesde(e.target.value)
+  })), React.createElement("div", {
+    style: {
+      flex: 1
+    }
+  }, React.createElement("label", null, "Hasta"), React.createElement("input", {
+    type: "date",
+    value: hasta,
+    onChange: e => setHasta(e.target.value)
+  }))), React.createElement("div", {
+    className: "chips",
+    style: {
+      marginTop: 10,
+      marginBottom: 0
+    }
+  }, React.createElement("div", {
+    className: "chip",
+    onClick: () => rango(hoy(), hoy())
+  }, "Hoy"), React.createElement("div", {
+    className: "chip",
+    onClick: () => rango(primerDiaMes(), hoy())
+  }, "Este mes"), React.createElement("div", {
+    className: "chip",
+    onClick: () => rango(inicioAno(), hoy())
+  }, "Este año"), React.createElement("div", {
+    className: "chip",
+    onClick: () => rango("", "")
+  }, "Todo"))), React.createElement("div", {
+    className: "eb"
+  }, "Consolidado del periodo"), React.createElement("div", {
+    className: "kpis"
+  }, React.createElement("div", {
+    className: "kpi g"
+  }, React.createElement("div", {
+    className: "l"
+  }, "Ventas"), React.createElement("div", {
+    className: "v"
+  }, money(totalVentas))), React.createElement("div", {
+    className: "kpi"
+  }, React.createElement("div", {
+    className: "l"
+  }, "Abonado (recibido)"), React.createElement("div", {
+    className: "v"
+  }, money(totalAbonado))), React.createElement("div", {
+    className: "kpi"
+  }, React.createElement("div", {
+    className: "l"
+  }, "Compras"), React.createElement("div", {
+    className: "v"
+  }, money(totalCompras))), React.createElement("div", {
+    className: "kpi r"
+  }, React.createElement("div", {
+    className: "l"
+  }, "Gastos"), React.createElement("div", {
+    className: "v"
+  }, money(totalGastos))), React.createElement("div", {
+    className: "kpi a"
+  }, React.createElement("div", {
+    className: "l"
+  }, "Te deben (por cobrar)"), React.createElement("div", {
+    className: "v"
+  }, money(porCobrar))), React.createElement("div", {
+    className: "kpi r"
+  }, React.createElement("div", {
+    className: "l"
+  }, "Debes (por pagar)"), React.createElement("div", {
+    className: "v"
+  }, money(porPagar)))), React.createElement("div", {
+    className: "card",
+    style: {
+      background: "#E6F6EF",
+      border: "none"
+    }
+  }, React.createElement("div", {
+    className: "row",
+    style: {
+      borderTop: "none"
+    }
+  }, React.createElement("span", null, "Utilidad estimada (ventas − gastos)"), React.createElement("b", {
+    style: {
+      color: utilidad >= 0 ? "var(--pri)" : "var(--red)",
+      fontSize: 16
+    }
+  }, money(utilidad))), React.createElement("div", {
+    className: "row",
+    style: {
+      borderColor: "#CFE9DD"
+    }
+  }, React.createElement("span", null, "Valor adeudado a tu favor"), React.createElement("b", {
+    style: {
+      color: "var(--amber)"
+    }
+  }, money(porCobrar))), React.createElement("div", {
+    className: "row",
+    style: {
+      borderColor: "#CFE9DD"
+    }
+  }, React.createElement("span", null, "Valor que adeudas"), React.createElement("b", {
+    style: {
+      color: "var(--red)"
+    }
+  }, money(porPagar)))), React.createElement("div", {
+    className: "card"
+  }, React.createElement("h3", null, React.createElement(ClipboardList, {
+    size: 16,
+    color: "#0E9E74"
+  }), " Detalle del periodo"), React.createElement("div", {
+    className: "seg"
+  }, React.createElement("button", {
+    className: detalle === "ventas" ? "on" : "",
+    onClick: () => setDetalle("ventas")
+  }, "Ventas"), React.createElement("button", {
+    className: detalle === "entradas" ? "on" : "",
+    onClick: () => setDetalle("entradas")
+  }, "Entradas"), React.createElement("button", {
+    className: detalle === "salidas" ? "on" : "",
+    onClick: () => setDetalle("salidas")
+  }, "Salidas")), detalle === "ventas" && React.createElement("div", {
+    style: {
+      marginTop: 10
+    }
+  }, facR.length === 0 ? React.createElement("div", {
+    className: "empty"
+  }, "Sin ventas en el periodo") : React.createElement(React.Fragment, null, facR.map(f => React.createElement("div", {
+    className: "row",
+    key: f.id
+  }, React.createElement("div", null, React.createElement("div", {
+    className: "nm"
+  }, pad("F", f.n), " · ", f.cliente), React.createElement("div", {
+    className: "meta"
+  }, f.fecha, " · ", f.punto, " · ", f.tipo)), React.createElement("div", {
+    style: {
+      textAlign: "right"
+    }
+  }, React.createElement("b", {
+    style: {
+      color: "var(--pri)"
+    }
+  }, money(f.total)), " ", React.createElement("button", {
+    className: "link",
+    onClick: () => showDoc(fToDoc(f))
+  }, "Ver"), f.saldo > 0 && React.createElement("div", null, React.createElement("span", {
+    className: "tag amber"
+  }, "Debe ", money(f.saldo)))))), React.createElement("div", {
+    className: "row",
+    style: {
+      borderTop: "2px solid var(--line)"
+    }
+  }, React.createElement("span", null, React.createElement("b", null, "Subtotal ventas")), React.createElement("b", null, money(totalVentas))), React.createElement("div", {
+    className: "row"
+  }, React.createElement("span", null, "Recibido (abonado)"), React.createElement("b", {
+    style: {
+      color: "var(--pri)"
+    }
+  }, money(totalAbonado))), React.createElement("div", {
+    className: "row"
+  }, React.createElement("span", null, "Pendiente por cobrar"), React.createElement("b", {
+    style: {
+      color: "var(--amber)"
+    }
+  }, money(facR.reduce((a, f) => a + f.saldo, 0)))))), detalle === "entradas" && React.createElement("div", {
+    style: {
+      marginTop: 10
+    }
+  }, entR.length === 0 ? React.createElement("div", {
+    className: "empty"
+  }, "Sin entradas en el periodo") : React.createElement(React.Fragment, null, entR.map(m => React.createElement("div", {
+    className: "mv",
+    key: m.id
+  }, React.createElement("span", {
+    className: "dot din"
+  }, "+"), React.createElement("div", {
+    style: {
+      flex: 1
+    }
+  }, React.createElement("div", {
+    className: "nm"
+  }, m.nom), React.createElement("div", {
+    className: "meta"
+  }, m.fecha, " · ", m.concepto, m.punto ? " · " + m.punto : "", m.nota ? " · " + m.nota : "")), React.createElement("b", {
+    style: {
+      color: "var(--pri)"
+    }
+  }, "+", m.cant))), React.createElement("div", {
+    className: "row",
+    style: {
+      borderTop: "2px solid var(--line)"
+    }
+  }, React.createElement("span", null, React.createElement("b", null, "Unidades que entraron")), React.createElement("b", null, uEnt, " und")), React.createElement("div", {
+    className: "row"
+  }, React.createElement("span", null, "Valor de compras del periodo"), React.createElement("b", null, money(totalCompras))))), detalle === "salidas" && React.createElement("div", {
+    style: {
+      marginTop: 10
+    }
+  }, salR.length === 0 ? React.createElement("div", {
+    className: "empty"
+  }, "Sin salidas en el periodo") : React.createElement(React.Fragment, null, salR.map(m => React.createElement("div", {
+    className: "mv",
+    key: m.id
+  }, React.createElement("span", {
+    className: "dot dout"
+  }, "−"), React.createElement("div", {
+    style: {
+      flex: 1
+    }
+  }, React.createElement("div", {
+    className: "nm"
+  }, m.nom), React.createElement("div", {
+    className: "meta"
+  }, m.fecha, " · ", m.concepto, m.punto ? " · " + m.punto : "", m.nota ? " · " + m.nota : "")), React.createElement("b", {
+    style: {
+      color: "var(--red)"
+    }
+  }, "−", m.cant))), React.createElement("div", {
+    className: "row",
+    style: {
+      borderTop: "2px solid var(--line)"
+    }
+  }, React.createElement("span", null, React.createElement("b", null, "Unidades que salieron")), React.createElement("b", null, uSal, " und"))))), React.createElement("div", {
+    className: "card"
+  }, React.createElement("h3", null, React.createElement(Users, {
+    size: 16,
+    color: "#0E9E74"
+  }), " Estado de cuenta por cliente"), React.createElement("label", null, "Cliente"), React.createElement("select", {
+    value: cliente,
+    onChange: e => setCliente(e.target.value)
+  }, React.createElement("option", {
+    value: ""
+  }, "Elige un cliente..."), clients.map(c => React.createElement("option", {
+    key: c.nombre
+  }, c.nombre))), cliente && React.createElement(React.Fragment, null, React.createElement("div", {
+    className: "row",
+    style: {
+      marginTop: 10
+    }
+  }, React.createElement("span", null, "Facturado (periodo)"), React.createElement("b", null, money(facturado))), React.createElement("div", {
+    className: "row"
+  }, React.createElement("span", null, "Abonado (periodo)"), React.createElement("b", {
+    style: {
+      color: "var(--pri)"
+    }
+  }, money(abonadoCli))), React.createElement("div", {
+    className: "row"
+  }, React.createElement("span", null, React.createElement("b", null, "Debe (saldo actual)")), React.createElement("b", {
+    style: {
+      color: debe > 0 ? "var(--amber)" : "var(--pri)"
+    }
+  }, money(debe))), React.createElement("div", {
+    style: {
+      marginTop: 10
+    }
+  }, facCliente.length === 0 ? React.createElement("div", {
+    className: "empty"
+  }, "Sin facturas") : facCliente.map(f => React.createElement("div", {
+    className: "row",
+    key: f.id
+  }, React.createElement("div", null, React.createElement("div", {
+    className: "nm"
+  }, pad("F", f.n)), React.createElement("div", {
+    className: "meta"
+  }, f.fecha)), React.createElement("div", {
+    style: {
+      textAlign: "right"
+    }
+  }, React.createElement("span", {
+    className: "meta"
+  }, money(f.total)), " ", React.createElement("button", {
+    className: "link",
+    onClick: () => showDoc(fToDoc(f))
+  }, "Ver"), f.saldo > 0 && React.createElement("div", null, React.createElement("span", {
+    className: "tag amber"
+  }, "Debe ", money(f.saldo))))))))), React.createElement("div", {
+    className: "card"
+  }, React.createElement("h3", null, React.createElement(Store, {
+    size: 17,
+    color: "#0E9E74"
+  }), " Consolidado por punto (periodo)"), consPunto.map(g => React.createElement("div", {
+    className: "row",
+    key: g.p
+  }, React.createElement("div", {
+    className: "nm"
+  }, g.p), React.createElement("div", {
+    style: {
+      textAlign: "right",
+      fontSize: 13
+    }
+  }, React.createElement("div", {
+    style: {
+      color: "var(--pri)",
+      fontWeight: 700
+    }
+  }, money(g.ventas), " ventas"), React.createElement("div", {
+    className: "meta"
+  }, money(g.compras), " compras · ", money(g.gastos), " gastos"))))), React.createElement("div", {
+    className: "card"
+  }, React.createElement("h3", null, React.createElement(FileText, {
+    size: 16,
+    color: "#0E9E74"
+  }), " Documentos generados (periodo)"), docs.length === 0 ? React.createElement("div", {
+    className: "empty"
+  }, "Sin documentos en este periodo") : docs.map((x, i) => React.createElement("div", {
+    className: "row",
+    key: i
+  }, React.createElement("div", null, React.createElement("div", {
+    className: "nm"
+  }, x.o.num, " · ", x.part), React.createElement("div", {
+    className: "meta"
+  }, x.fecha, " · ", x.o.tipo)), React.createElement("div", {
+    style: {
+      textAlign: "right"
+    }
+  }, React.createElement("span", {
+    className: "meta"
+  }, money(x.tot)), " ", React.createElement("button", {
+    className: "link",
+    onClick: () => showDoc(x.o)
+  }, "Ver"))))), React.createElement("div", {
+    className: "card"
+  }, React.createElement("h3", null, React.createElement(TrendingUp, {
+    size: 17,
+    color: "#0E9E74"
+  }), " Más vendidos (histórico)"), topVendidos.length === 0 ? React.createElement("div", {
+    className: "empty"
+  }, "Sin ventas") : topVendidos.slice(0, 8).map((t, i) => React.createElement("div", {
+    key: i,
+    style: {
+      marginBottom: 10
+    }
+  }, React.createElement("div", {
+    className: "row",
+    style: {
+      borderTop: "none",
+      padding: "0 0 4px"
+    }
+  }, React.createElement("span", {
+    className: "nm"
+  }, t.nom), React.createElement("span", {
+    className: "meta"
+  }, t.cant, " und · ", money(t.total))), React.createElement("div", {
+    className: "bar"
+  }, React.createElement("i", {
+    style: {
+      width: t.cant / maxV * 100 + "%"
+    }
+  }))))), React.createElement("div", {
+    className: "card"
+  }, React.createElement("h3", null, React.createElement(Boxes, {
+    size: 17,
+    color: "#0E9E74"
+  }), " Inventario y caja"), React.createElement("div", {
+    className: "row",
+    style: {
+      borderTop: "none"
+    }
+  }, React.createElement("span", null, React.createElement("b", null, "Valor inventario (costo)")), React.createElement("b", null, money(valorInv))), React.createElement("div", {
+    className: "row"
+  }, React.createElement("span", null, React.createElement("b", null, "Saldo en caja")), React.createElement("b", {
+    style: {
+      color: caja >= 0 ? "var(--pri)" : "var(--red)"
+    }
+  }, money(caja)))));
+}
+function PersonasMaestro({
+  titulo,
+  Icono,
+  items,
+  setItems,
+  flash,
+  rolLabel
+}) {
+  const [edit, setEdit] = useState(null);
+  const [f, setF] = useState({
+    nombre: "",
+    ident: "",
+    dir: "",
+    tel: ""
+  });
+  const abrirNuevo = () => {
+    setF({
+      nombre: "",
+      ident: "",
+      dir: "",
+      tel: ""
+    });
+    setEdit("new");
+  };
+  const abrirEdit = x => {
+    setF({
+      ...x
+    });
+    setEdit(x.nombre);
+  };
+  const guardar = () => {
+    if (!f.nombre.trim()) return;
+    const rec = {
+      ...f,
+      id: f.id || f.nombre.trim(),
+      nombre: f.nombre.trim()
+    };
+    if (edit === "new") setItems([...items, rec]);else setItems(items.map(x => x.nombre === edit ? rec : x));
+    setEdit(null);
+    flash(rolLabel + " guardado");
+  };
+  const borrar = nombre => setItems(items.filter(x => x.nombre !== nombre));
+  if (edit) return React.createElement("div", {
+    className: "card"
+  }, React.createElement("h3", null, React.createElement(Icono, {
+    size: 16,
+    color: "#0E9E74"
+  }), " ", edit === "new" ? "Nuevo " + rolLabel : "Editar " + rolLabel), React.createElement("label", null, "Nombre"), React.createElement("input", {
+    value: f.nombre,
+    onChange: e => setF({
+      ...f,
+      nombre: e.target.value
+    }),
+    placeholder: "Nombre o razón social"
+  }), React.createElement("label", null, "Identificación (cédula/NIT)"), React.createElement("input", {
+    value: f.ident,
+    onChange: e => setF({
+      ...f,
+      ident: e.target.value
+    }),
+    placeholder: "Ej: 43.111.222"
+  }), React.createElement("label", null, "Dirección"), React.createElement("input", {
+    value: f.dir,
+    onChange: e => setF({
+      ...f,
+      dir: e.target.value
+    }),
+    placeholder: "Dirección"
+  }), React.createElement("label", null, "Teléfono"), React.createElement("input", {
+    value: f.tel,
+    onChange: e => setF({
+      ...f,
+      tel: e.target.value
+    }),
+    placeholder: "Teléfono"
+  }), React.createElement("div", {
+    style: {
+      display: "flex",
+      gap: 8
+    }
+  }, React.createElement("button", {
+    className: "btn g",
+    onClick: () => setEdit(null)
+  }, "Cancelar"), React.createElement("button", {
+    className: "btn",
+    onClick: guardar
+  }, React.createElement(Check, {
+    size: 18
+  }), " Guardar")));
+  return React.createElement("div", {
+    className: "card"
+  }, React.createElement("h3", null, React.createElement(Icono, {
+    size: 16,
+    color: "#0E9E74"
+  }), " ", titulo), items.length === 0 ? React.createElement("div", {
+    className: "empty",
+    style: {
+      padding: 14
+    }
+  }, "Sin ", titulo.toLowerCase(), ". Agrega abajo.") : items.map(x => React.createElement("div", {
+    className: "row",
+    key: x.nombre
+  }, React.createElement("div", null, React.createElement("div", {
+    className: "nm"
+  }, x.nombre), React.createElement("div", {
+    className: "meta"
+  }, [x.ident, x.tel, x.dir].filter(Boolean).join(" · ") || "Sin datos adicionales")), React.createElement("span", {
+    style: {
+      display: "flex",
+      gap: 6
+    }
+  }, React.createElement("button", {
+    className: "btn g",
+    style: {
+      width: "auto",
+      margin: 0,
+      padding: "6px 10px"
+    },
+    onClick: () => abrirEdit(x)
+  }, React.createElement(Pencil, {
+    size: 14
+  })), React.createElement("button", {
+    className: "btn g",
+    style: {
+      width: "auto",
+      margin: 0,
+      padding: "6px 10px",
+      color: "var(--red)"
+    },
+    onClick: () => borrar(x.nombre)
+  }, React.createElement(Trash2, {
+    size: 14
+  }))))), React.createElement("button", {
+    className: "btn",
+    onClick: abrirNuevo
+  }, React.createElement(Plus, {
+    size: 18
+  }), " Agregar ", rolLabel));
+}
+function ListaMaestro({
+  titulo,
+  Icono,
+  items,
+  onAdd,
+  onDel,
+  onRename,
+  placeholder,
+  upper
+}) {
+  const [nv, setNv] = useState("");
+  const [ed, setEd] = useState(null);
+  const [edv, setEdv] = useState("");
+  const norm = v => upper ? v.trim().toUpperCase() : v.trim();
+  return React.createElement("div", {
+    className: "card"
+  }, React.createElement("h3", null, React.createElement(Icono, {
+    size: 16,
+    color: "#0E9E74"
+  }), " ", titulo), items.length === 0 ? React.createElement("div", {
+    className: "empty",
+    style: {
+      padding: 14
+    }
+  }, "Vacío. Agrega abajo.") : items.map(it => React.createElement("div", {
+    className: "row",
+    key: it
+  }, ed === it && onRename ? React.createElement("input", {
+    value: edv,
+    onChange: e => setEdv(e.target.value),
+    style: {
+      padding: 8
+    }
+  }) : React.createElement("span", {
+    className: "nm"
+  }, it), React.createElement("span", {
+    style: {
+      display: "flex",
+      gap: 6
+    }
+  }, ed === it && onRename ? React.createElement("button", {
+    className: "btn g",
+    style: {
+      width: "auto",
+      margin: 0,
+      padding: "6px 12px"
+    },
+    onClick: () => {
+      const v = norm(edv);
+      if (v) onRename(it, v);
+      setEd(null);
+    }
+  }, "Guardar") : React.createElement(React.Fragment, null, onRename && React.createElement("button", {
+    className: "btn g",
+    style: {
+      width: "auto",
+      margin: 0,
+      padding: "6px 10px"
+    },
+    onClick: () => {
+      setEd(it);
+      setEdv(it);
+    }
+  }, React.createElement(Pencil, {
+    size: 14
+  })), React.createElement("button", {
+    className: "btn g",
+    style: {
+      width: "auto",
+      margin: 0,
+      padding: "6px 10px",
+      color: "var(--red)"
+    },
+    onClick: () => onDel(it)
+  }, React.createElement(Trash2, {
+    size: 14
+  })))))), React.createElement("div", {
+    style: {
+      display: "flex",
+      gap: 8,
+      marginTop: 12
+    }
+  }, React.createElement("input", {
+    value: nv,
+    onChange: e => setNv(e.target.value),
+    placeholder: placeholder
+  }), React.createElement("button", {
+    className: "btn",
+    style: {
+      width: "auto",
+      margin: 0,
+      padding: "0 16px"
+    },
+    onClick: () => {
+      const v = norm(nv);
+      if (v && !items.includes(v)) {
+        onAdd(v);
+        setNv("");
+      }
+    }
+  }, React.createElement(Plus, {
+    size: 18
+  }))));
+}
+function Maestros({
+  points,
+  setPoints,
+  cats,
+  setCats,
+  clients,
+  setClients,
+  suppliers,
+  setSuppliers,
+  concEnt,
+  setConcEnt,
+  concSal,
+  setConcSal,
+  onReset,
+  onCero,
+  flash
+}) {
+  const [tab, setTab] = useState("puntos");
+  const TABS = [["puntos", "Puntos"], ["clientes", "Clientes"], ["proveedores", "Proveedores"], ["categorias", "Categorías"], ["conceptos", "Conceptos"], ["datos", "Datos"]];
+  return React.createElement("div", {
+    className: "wrap"
+  }, React.createElement("div", {
+    className: "eb"
+  }, "Maestros y ajustes"), React.createElement("h2", null, "Configura tu negocio"), React.createElement("div", {
+    className: "chips"
+  }, TABS.map(([k, t]) => React.createElement("div", {
+    key: k,
+    className: "chip" + (tab === k ? " on" : ""),
+    onClick: () => setTab(k)
+  }, t))), tab === "puntos" && React.createElement(ListaMaestro, {
+    titulo: "Puntos de venta",
+    Icono: Store,
+    items: points,
+    upper: true,
+    placeholder: "Nuevo punto",
+    onAdd: v => {
+      setPoints([...points, v]);
+      flash("Punto agregado");
+    },
+    onDel: v => setPoints(points.filter(x => x !== v)),
+    onRename: (o, n) => setPoints(points.map(x => x === o ? n : x))
+  }), tab === "clientes" && React.createElement(PersonasMaestro, {
+    titulo: "Clientes",
+    Icono: Users,
+    items: clients,
+    setItems: setClients,
+    flash: flash,
+    rolLabel: "cliente"
+  }), tab === "proveedores" && React.createElement(PersonasMaestro, {
+    titulo: "Proveedores",
+    Icono: Truck,
+    items: suppliers,
+    setItems: setSuppliers,
+    flash: flash,
+    rolLabel: "proveedor"
+  }), tab === "categorias" && React.createElement(ListaMaestro, {
+    titulo: "Categorías",
+    Icono: Tag,
+    items: cats,
+    upper: true,
+    placeholder: "Nueva categoría",
+    onAdd: v => {
+      setCats([...cats, v]);
+      flash("Categoría agregada");
+    },
+    onDel: v => setCats(cats.filter(x => x !== v)),
+    onRename: (o, n) => setCats(cats.map(x => x === o ? n : x))
+  }), tab === "conceptos" && React.createElement(React.Fragment, null, React.createElement(ListaMaestro, {
+    titulo: "Conceptos de entrada",
+    Icono: ClipboardList,
+    items: concEnt,
+    placeholder: "Nuevo concepto de entrada",
+    onAdd: v => setConcEnt([...concEnt, v]),
+    onDel: v => setConcEnt(concEnt.filter(x => x !== v))
+  }), React.createElement(ListaMaestro, {
+    titulo: "Conceptos de salida",
+    Icono: ClipboardList,
+    items: concSal,
+    placeholder: "Nuevo concepto de salida",
+    onAdd: v => setConcSal([...concSal, v]),
+    onDel: v => setConcSal(concSal.filter(x => x !== v))
+  })), tab === "datos" && React.createElement("div", {
+    className: "card"
+  }, React.createElement("h3", null, "Datos del negocio"), React.createElement("p", {
+    className: "lead"
+  }, "Cuando estés lista, deja el inventario en cero para cargar tus existencias reales, o borra todos los datos de ejemplo."), React.createElement("button", {
+    className: "btn g",
+    style: {
+      margin: "0 0 10px"
+    },
+    onClick: onCero
+  }, React.createElement(Boxes, {
+    size: 16
+  }), " Poner inventario en cero"), React.createElement("button", {
+    className: "btn r",
+    style: {
+      margin: 0
+    },
+    onClick: onReset
+  }, React.createElement(Trash2, {
+    size: 16
+  }), " Borrar ejemplos y empezar de cero")));
+}
+import { createRoot as __cr } from "https://esm.sh/react-dom@18.3.1/client";
+__cr(document.getElementById("root")).render(React.createElement(App));
+
+</script>
+</body>
+</html>
